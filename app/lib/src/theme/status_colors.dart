@@ -26,19 +26,19 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
 
   static const _light = AppStatusColors(
     colors: {
-      Situation.ok: (Color(0xFF256B41), Color(0xFFDBF0E2)),
+      Situation.ok: (Color(0xFF0A7A3D), Color(0xFFD3F5E0)),
       Situation.open: (Color(0xFF7A5600), Color(0xFFFBEBC4)),
-      Situation.overdue: (Color(0xFFB3261E), Color(0xFFF9DEDC)),
+      Situation.overdue: (Color(0xFFB3261E), Color(0xFFFFDAD6)),
       Situation.off: (Color(0xFF55636A), Color(0xFFE3E9EC)),
     },
   );
 
   static const _dark = AppStatusColors(
     colors: {
-      Situation.ok: (Color(0xFF8AD6A8), Color(0xFF173A27)),
-      Situation.open: (Color(0xFFF2C75A), Color(0xFF3D2F0C)),
-      Situation.overdue: (Color(0xFFF2B8B5), Color(0xFF4A1B18)),
-      Situation.off: (Color(0xFFB5C3C9), Color(0xFF2A363C)),
+      Situation.ok: (Color(0xFF39FF88), Color(0xFF0F3D22)),
+      Situation.open: (Color(0xFFF5C542), Color(0xFF3D2F0C)),
+      Situation.overdue: (Color(0xFFFF8A8A), Color(0xFF4A1B1B)),
+      Situation.off: (Color(0xFF9AA4AE), Color(0xFF1F2933)),
     },
   );
 

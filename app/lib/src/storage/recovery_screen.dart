@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/brand_mark.dart';
+
 /// Shown when `app.db` cannot be opened. Offers to start
 /// over; the WhatsApp connection and messages are not affected.
 class RecoveryScreen extends StatelessWidget {
@@ -49,7 +51,7 @@ class RecoveryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat do Garoto')),
+      appBar: AppBar(title: const BrandLockup(size: 30)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

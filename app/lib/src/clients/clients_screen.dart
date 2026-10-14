@@ -6,6 +6,7 @@ import '../home/crm_scope.dart';
 import '../products/money.dart';
 import '../sales/sales_repository.dart';
 import '../settings/settings_menu.dart';
+import '../theme/brand_mark.dart';
 import '../theme/components.dart';
 import '../theme/motion.dart';
 import '../theme/status_colors.dart';
@@ -122,7 +123,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Clientes'),
+        title: const SemicolonText('Clientes'),
         actions: [
           PopupMenuButton<ClientSort>(
             tooltip: 'Ordenar',

@@ -6,6 +6,7 @@ import '../clients/validation.dart';
 import '../core_bridge/core_bridge.dart';
 import '../home/crm_scope.dart';
 import '../settings/settings_menu.dart';
+import '../theme/brand_mark.dart';
 import '../theme/components.dart';
 import 'chat_clients.dart';
 import 'chat_filters.dart';
@@ -135,7 +136,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
     final names = _names;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Conversas'),
+        title: const SemicolonText('Conversas'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(20),
           child: Padding(

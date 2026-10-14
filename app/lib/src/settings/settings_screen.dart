@@ -6,6 +6,7 @@ import '../intro/intro_screen.dart';
 import '../lock/change_pin_screen.dart';
 import '../lock/lock_controller.dart';
 import '../platform/battery_screen.dart';
+import '../theme/brand_mark.dart';
 import '../theme/components.dart';
 import '../theme/theme_controller.dart';
 import '../whatsapp/connect_screen.dart';
@@ -45,7 +46,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final prefs = CrmScope.maybeOf(context)?.chatPrefs;
     return Scaffold(
-      appBar: AppBar(title: const Text('Configurações')),
+      appBar: AppBar(title: const SemicolonText('Configurações')),
       body: ListenableBuilder(
         listenable: Listenable.merge([whatsapp, lock, ?theme]),
         // In groups, each item with its icon.

@@ -20,6 +20,7 @@ import '../sales/sale_math.dart';
 import '../sales/sale_screen.dart';
 import '../sales/sales_repository.dart';
 import '../sales/sales_screen.dart';
+import '../theme/brand_mark.dart';
 import '../theme/app_theme.dart';
 import '../theme/components.dart';
 import '../theme/status_colors.dart';
@@ -164,7 +165,7 @@ class _StartScreenState extends State<StartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Início'),
+        title: const SemicolonText('Início'),
         actions: [
           if (widget.onOpenSettings case final open?)
             IconButton(

@@ -25,9 +25,10 @@ void main() {
     group(name, () {
       test('the brand, the fonts and the shapes', () {
         final c = theme.colorScheme;
-        // Petroleum stays deep on light and bright on dark.
+        // The brand green is bright on dark and darkened on light, where it
+        // must still read on the background.
         if (theme.brightness == Brightness.light) {
-          expect(c.primary.computeLuminance(), lessThan(0.12));
+          expect(contrast(c.primary, c.surface), greaterThanOrEqualTo(4.5));
         } else {
           expect(c.primary.computeLuminance(), greaterThan(0.3));
         }
@@ -152,15 +153,19 @@ void appearanceTests() {
     final vault = _Vault();
     final c = ThemeController(store: vault);
     await c.load();
-    expect(c.mode, ThemeMode.system);
-    await c.set(ThemeMode.dark);
-    expect(vault.value, 'dark');
+    // The brand is dark: that is the look until the user chooses another.
+    expect(c.mode, ThemeMode.dark);
+    await c.set(ThemeMode.light);
+    expect(vault.value, 'light');
     final again = ThemeController(store: vault);
     await again.load();
-    expect(again.mode, ThemeMode.dark);
-    vault.value = 'nonsense';
+    expect(again.mode, ThemeMode.light);
+    await again.set(ThemeMode.system);
     await again.load();
     expect(again.mode, ThemeMode.system);
+    vault.value = 'nonsense';
+    await again.load();
+    expect(again.mode, ThemeMode.dark);
   });
 
   testWidgets('Aparência changes the look at once', (tester) async {
@@ -183,15 +188,15 @@ void appearanceTests() {
         ),
       ),
     );
-    expect(find.text('Igual ao celular'), findsOneWidget);
-    await tester.tap(find.text('Igual ao celular'));
-    await tester.pumpAndSettle();
+    expect(find.text('Escuro'), findsOneWidget);
     await tester.tap(find.text('Escuro'));
     await tester.pumpAndSettle();
-    expect(c.mode, ThemeMode.dark);
+    await tester.tap(find.text('Claro'));
+    await tester.pumpAndSettle();
+    expect(c.mode, ThemeMode.light);
     expect(
       Theme.of(tester.element(find.byType(Scaffold))).brightness,
-      Brightness.dark,
+      Brightness.light,
     );
   });
 }

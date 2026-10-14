@@ -103,12 +103,12 @@ Future<void> main() async {
   );
 }
 
-/// The bundled fonts' licenses (OFL) in the app's license page.
+/// The bundled fonts' licenses (OFL and UFL) in the app's license page.
 void _registerFontLicenses() {
   LicenseRegistry.addLicense(() async* {
     for (final (family, file) in [
       ('Atkinson Hyperlegible Next', 'OFL-AtkinsonHyperlegibleNext.txt'),
-      ('Bricolage Grotesque', 'OFL-BricolageGrotesque.txt'),
+      ('Ubuntu Sans Mono', 'UFL-UbuntuSansMono.txt'),
     ]) {
       final text = await rootBundle.loadString('assets/fonts/$file');
       yield LicenseEntryWithLineBreaks([family], text);

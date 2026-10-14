@@ -7,6 +7,7 @@ import '../products/money.dart';
 import '../products/pricing.dart';
 import '../products/products_repository.dart';
 import '../settings/settings_menu.dart';
+import '../theme/brand_mark.dart';
 import '../theme/components.dart';
 import '../theme/motion.dart';
 import '../theme/status_colors.dart';
@@ -216,7 +217,7 @@ class SalesSearch extends ChangeNotifier {
   }) {
     if (!open) {
       return AppBar(
-        title: Text(title),
+        title: SemicolonText(title),
         actions: [
           IconButton(
             tooltip: 'Buscar vendas',

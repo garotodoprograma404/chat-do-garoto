@@ -6,6 +6,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../settings/settings_menu.dart';
 import 'whatsapp_controller.dart';
+import '../theme/brand_mark.dart';
 
 /// Links the app to WhatsApp by pairing code or QR code, and shows the
 /// connection once linked.
@@ -29,7 +30,7 @@ class ConnectScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat do Garoto'),
+        title: const BrandLockup(size: 30),
         actions: [
           if (onOpenSettings case final open?)
             SettingsMenuButton(onOpenSettings: open),

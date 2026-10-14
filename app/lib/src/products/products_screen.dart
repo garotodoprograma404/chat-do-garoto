@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../scan/barcode_scanner.dart';
 
 import '../settings/settings_menu.dart';
+import '../theme/brand_mark.dart';
 import '../theme/components.dart';
 import '../theme/motion.dart';
 import '../theme/status_colors.dart';
@@ -176,7 +177,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Produtos'),
+        title: const SemicolonText('Produtos'),
         actions: [
           if (barcodeScanner != null)
             IconButton(

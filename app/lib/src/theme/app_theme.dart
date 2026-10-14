@@ -2,20 +2,17 @@ import 'package:flutter/material.dart';
 
 import 'status_colors.dart';
 
-/// The app's own look: petroleum with ipê yellow, the
-/// bundled fonts, its own shapes and density, light and dark.
+/// The app's own look: the Garoto do Programa brand (neon green and pink on
+/// the channel's dark background), the bundled fonts, its own shapes and
+/// density. Dark first; the light theme keeps the same colors, darkened to
+/// keep the contrast. Colors with a meaning (overdue, paid) live in
+/// `status_colors.dart` and may leave the brand palette.
 abstract final class AppTheme {
-  /// The brand color: deep petroleum.
-  static const brand = Color(0xFF0F4C5C);
-
-  /// The rare highlight: ipê yellow.
-  static const ipe = Color(0xFFE8B10C);
-
   /// Body text, lists and numbers.
   static const textFont = 'AtkinsonHyperlegibleNext';
 
-  /// Titles and big amounts.
-  static const displayFont = 'BricolageGrotesque';
+  /// Titles and big amounts: the channel's mono font.
+  static const displayFont = 'UbuntuSansMono';
 
   /// Corner radii.
   static const radiusChip = 8.0;
@@ -26,25 +23,87 @@ abstract final class AppTheme {
   static ThemeData light() => _build(Brightness.light);
   static ThemeData dark() => _build(Brightness.dark);
 
-  static ColorScheme scheme(Brightness brightness) {
-    final base = ColorScheme.fromSeed(
-      seedColor: brand,
-      brightness: brightness,
-      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
-    );
-    // The ipê palette takes the tertiary roles, for the rare highlights.
-    final ipeScheme = ColorScheme.fromSeed(
-      seedColor: ipe,
-      brightness: brightness,
-      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
-    );
-    return base.copyWith(
-      tertiary: ipeScheme.primary,
-      onTertiary: ipeScheme.onPrimary,
-      tertiaryContainer: ipeScheme.primaryContainer,
-      onTertiaryContainer: ipeScheme.onPrimaryContainer,
-    );
-  }
+  static ColorScheme scheme(Brightness brightness) =>
+      brightness == Brightness.dark ? _dark : _light;
+
+  // Green leads (buttons, active item, amounts); pink is the signature
+  // accent (tertiary); the secondary roles are the quiet green tint used
+  // for selected chips and the active tab.
+  static const _dark = ColorScheme(
+    brightness: Brightness.dark,
+    primary: Color(0xFF39FF88),
+    onPrimary: Color(0xFF04210F),
+    primaryContainer: Color(0xFF0F3D22),
+    onPrimaryContainer: Color(0xFFB9FFD6),
+    secondary: Color(0xFF8FD9AD),
+    onSecondary: Color(0xFF06210F),
+    secondaryContainer: Color(0xFF16301F),
+    onSecondaryContainer: Color(0xFFE6EDF3),
+    tertiary: Color(0xFFFF2E88),
+    onTertiary: Color(0xFF2A0016),
+    tertiaryContainer: Color(0xFF3A1226),
+    onTertiaryContainer: Color(0xFFFFC2DC),
+    error: Color(0xFFFF6B6B),
+    onError: Color(0xFF2A0606),
+    errorContainer: Color(0xFF4A1B1B),
+    onErrorContainer: Color(0xFFFFC9C9),
+    surface: Color(0xFF0D1117),
+    onSurface: Color(0xFFE6EDF3),
+    onSurfaceVariant: Color(0xFF9AA4AE),
+    surfaceDim: Color(0xFF0A0E13),
+    surfaceBright: Color(0xFF212C3A),
+    surfaceContainerLowest: Color(0xFF0A0E13),
+    surfaceContainerLow: Color(0xFF111821),
+    surfaceContainer: Color(0xFF151D28),
+    surfaceContainerHigh: Color(0xFF1A2330),
+    surfaceContainerHighest: Color(0xFF212C3A),
+    outline: Color(0xFF4A5666),
+    outlineVariant: Color(0xFF26303D),
+    shadow: Color(0xFF000000),
+    scrim: Color(0xFF000000),
+    inverseSurface: Color(0xFFE6EDF3),
+    onInverseSurface: Color(0xFF0D1117),
+    inversePrimary: Color(0xFF0A7A3D),
+    surfaceTint: Color(0xFF39FF88),
+  );
+
+  static const _light = ColorScheme(
+    brightness: Brightness.light,
+    primary: Color(0xFF0A7A3D),
+    onPrimary: Color(0xFFFFFFFF),
+    primaryContainer: Color(0xFFBDF9D4),
+    onPrimaryContainer: Color(0xFF04301A),
+    secondary: Color(0xFF2F6B49),
+    onSecondary: Color(0xFFFFFFFF),
+    secondaryContainer: Color(0xFFDDF3E6),
+    onSecondaryContainer: Color(0xFF0D1117),
+    tertiary: Color(0xFFD6006E),
+    onTertiary: Color(0xFFFFFFFF),
+    tertiaryContainer: Color(0xFFFFDCEA),
+    onTertiaryContainer: Color(0xFF4A0027),
+    error: Color(0xFFC62828),
+    onError: Color(0xFFFFFFFF),
+    errorContainer: Color(0xFFFFDAD6),
+    onErrorContainer: Color(0xFF410002),
+    surface: Color(0xFFF6F8FA),
+    onSurface: Color(0xFF0D1117),
+    onSurfaceVariant: Color(0xFF4A5562),
+    surfaceDim: Color(0xFFDCE2E8),
+    surfaceBright: Color(0xFFFFFFFF),
+    surfaceContainerLowest: Color(0xFFFFFFFF),
+    surfaceContainerLow: Color(0xFFFFFFFF),
+    surfaceContainer: Color(0xFFEDF1F5),
+    surfaceContainerHigh: Color(0xFFE6EBF0),
+    surfaceContainerHighest: Color(0xFFDEE4EA),
+    outline: Color(0xFF6B7785),
+    outlineVariant: Color(0xFFD0D7DE),
+    shadow: Color(0xFF000000),
+    scrim: Color(0xFF000000),
+    inverseSurface: Color(0xFF0D1117),
+    onInverseSurface: Color(0xFFE6EDF3),
+    inversePrimary: Color(0xFF39FF88),
+    surfaceTint: Color(0xFF0A7A3D),
+  );
 
   static TextTheme _text(ColorScheme c) {
     TextStyle s(
@@ -62,14 +121,14 @@ abstract final class AppTheme {
       color: c.onSurface,
     );
     return TextTheme(
-      displayLarge: s(displayFont, 48, 54, FontWeight.w700),
-      displayMedium: s(displayFont, 40, 46, FontWeight.w700),
+      displayLarge: s(displayFont, 48, 54, FontWeight.w800),
+      displayMedium: s(displayFont, 40, 46, FontWeight.w800),
       // The big amount of a sale, a receipt or a total.
-      displaySmall: s(displayFont, 34, 40, FontWeight.w700),
-      headlineLarge: s(displayFont, 30, 36, FontWeight.w700),
-      headlineMedium: s(displayFont, 26, 32, const FontWeight(650)),
-      headlineSmall: s(displayFont, 24, 30, const FontWeight(650)),
-      titleLarge: s(displayFont, 22, 28, FontWeight.w700),
+      displaySmall: s(displayFont, 34, 40, FontWeight.w800),
+      headlineLarge: s(displayFont, 30, 36, FontWeight.w800),
+      headlineMedium: s(displayFont, 26, 32, FontWeight.w800),
+      headlineSmall: s(displayFont, 24, 30, FontWeight.w800),
+      titleLarge: s(displayFont, 22, 28, FontWeight.w800),
       titleMedium: s(textFont, 16, 22, FontWeight.w600),
       titleSmall: s(textFont, 14, 20, FontWeight.w600),
       bodyLarge: s(textFont, 16, 22, FontWeight.w400),

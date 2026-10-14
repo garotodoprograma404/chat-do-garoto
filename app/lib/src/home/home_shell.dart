@@ -1,6 +1,5 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 
 import '../backup/backup_controller.dart';
 import '../backup/backup_screen.dart';
@@ -16,6 +15,7 @@ import '../products/products_screen.dart';
 import '../sales/sales_repository.dart';
 import '../sales/sales_screen.dart';
 import '../whatsapp/connect_screen.dart';
+import '../theme/brand_nav_bar.dart';
 import '../theme/motion.dart';
 import '../whatsapp/whatsapp_controller.dart';
 import 'start_screen.dart';
@@ -188,37 +188,10 @@ class _HomeShellState extends State<HomeShell> {
           ),
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _section,
-        onDestinationSelected: (i) => setState(() => _section = i),
-        // The active section's icon is filled.
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Symbols.home_rounded),
-            selectedIcon: Icon(Symbols.home_rounded, fill: 1),
-            label: 'Início',
-          ),
-          NavigationDestination(
-            icon: Icon(Symbols.chat_rounded),
-            selectedIcon: Icon(Symbols.chat_rounded, fill: 1),
-            label: 'Conversas',
-          ),
-          NavigationDestination(
-            icon: Icon(Symbols.group_rounded),
-            selectedIcon: Icon(Symbols.group_rounded, fill: 1),
-            label: 'Clientes',
-          ),
-          NavigationDestination(
-            icon: Icon(Symbols.inventory_2_rounded),
-            selectedIcon: Icon(Symbols.inventory_2_rounded, fill: 1),
-            label: 'Produtos',
-          ),
-          NavigationDestination(
-            icon: Icon(Symbols.point_of_sale_rounded),
-            selectedIcon: Icon(Symbols.point_of_sale_rounded, fill: 1),
-            label: 'Vendas',
-          ),
-        ],
+      bottomNavigationBar: BrandNavBar(
+        items: brandSections,
+        selected: _section,
+        onSelected: (i) => setState(() => _section = i),
       ),
     );
   }

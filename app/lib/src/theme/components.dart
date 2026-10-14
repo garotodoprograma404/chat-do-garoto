@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import 'brand_mark.dart';
+
 /// An amount in evidence: the display face, aligned digits.
 class MoneyText extends StatelessWidget {
   const MoneyText(this.text, {super.key, this.small = false, this.color});
@@ -69,7 +71,8 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-/// What an empty screen says: the situation and the next step, no picture
+/// What an empty screen says: the situation and the next step, with the
+/// Garoto's face above.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
@@ -94,6 +97,8 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const BrandMark(size: 64),
+            const SizedBox(height: 16),
             Text(title, style: t.titleLarge, textAlign: TextAlign.center),
             if (message case final m?) ...[
               const SizedBox(height: 8),

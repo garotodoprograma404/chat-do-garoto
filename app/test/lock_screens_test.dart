@@ -90,6 +90,7 @@ void main() {
         .toSet();
     expect(texts, {
       'Chat do Garoto',
+      ';', // the pink ";" of the signature
       'Digite o PIN para abrir o app.',
       'PIN',
       'Usar a digital',

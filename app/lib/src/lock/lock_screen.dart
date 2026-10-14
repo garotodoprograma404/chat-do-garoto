@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'lock_controller.dart';
 import 'pin_field.dart';
+import '../theme/brand_mark.dart';
 
 /// The app is locked: only the PIN, biometrics and "forgot the PIN"; no
 /// conversations, names or numbers.
@@ -54,32 +55,40 @@ class _LockScreenState extends State<LockScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat do Garoto')),
-      body: ListenableBuilder(
-        listenable: lock,
-        builder: (context, _) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            const Text('Digite o PIN para abrir o app.'),
-            const SizedBox(height: 16),
-            PinField(
-              label: 'PIN',
-              enabled: !lock.busy,
-              onComplete: lock.unlock,
-            ),
-            if (lock.message case final message?)
-              Text(
-                message,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+      appBar: AppBar(title: const BrandLockup(size: 30)),
+      body: DotGrid(
+        child: ListenableBuilder(
+          listenable: lock,
+          builder: (context, _) => ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              const SizedBox(height: 24),
+              const Center(child: BrandMark(size: 96)),
+              const SizedBox(height: 24),
+              const Text('Digite o PIN para abrir o app.'),
+              const SizedBox(height: 16),
+              PinField(
+                label: 'PIN',
+                enabled: !lock.busy,
+                onComplete: lock.unlock,
               ),
-            const SizedBox(height: 16),
-            if (lock.biometricsOn)
-              OutlinedButton(
-                onPressed: lock.busy ? null : lock.unlockWithBiometrics,
-                child: const Text('Usar a digital'),
+              if (lock.message case final message?)
+                Text(
+                  message,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              const SizedBox(height: 16),
+              if (lock.biometricsOn)
+                OutlinedButton(
+                  onPressed: lock.busy ? null : lock.unlockWithBiometrics,
+                  child: const Text('Usar a digital'),
+                ),
+              TextButton(
+                onPressed: _forgot,
+                child: const Text('Esqueci o PIN'),
               ),
-            TextButton(onPressed: _forgot, child: const Text('Esqueci o PIN')),
-          ],
+            ],
+          ),
         ),
       ),
     );

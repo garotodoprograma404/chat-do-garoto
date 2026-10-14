@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/brand_mark.dart';
+
 /// How the screens are shown.
 enum IntroMode {
   /// A new install, before the PIN: the backup warning must be confirmed,
@@ -68,104 +70,107 @@ class _IntroScreenState extends State<IntroScreen> {
       appBar: _reading
           ? AppBar(title: const Text('Privacidade e segurança'))
           : null,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView(
-                controller: _pages,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  const _Page(
-                    title: 'O que o app protege',
-                    points: [
-                      'Seus clientes, vendas e conversas ficam guardados só '
-                          'neste celular, embaralhados (cifrados). Não existe '
-                          'servidor nosso.',
-                      'O app tem PIN e digital próprios e se tranca sozinho '
-                          'quando você sai ou fica um tempo sem usar.',
-                      'O que você apaga no app some de verdade.',
-                      'Nem nós conseguimos ver os seus dados.',
-                    ],
-                  ),
-                  const _Page(
-                    title: 'O que o app não protege',
-                    points: [
-                      'O WhatsApp continua sabendo com quem você conversa e '
-                          'quando, mas não o que vocês dizem.',
-                      'As conversas continuam também no WhatsApp do seu '
-                          'celular principal e nos backups dele. A outra '
-                          'pessoa fica com a cópia dela.',
-                      'Com o celular desbloqueado e o app aberto, quem '
-                          'estiver com ele na mão vê tudo.',
-                      'Abra o WhatsApp do celular principal ao menos uma vez '
-                          'a cada 14 dias, ou o app é desconectado.',
-                      // The one connection besides WhatsApp.
-                      'Ao tocar em "Buscar CEP", só o número do CEP vai para '
-                          'um serviço público de CEP (ViaCEP ou BrasilAPI).',
-                    ],
-                  ),
-                  _Page(
-                    title: 'Faça backup',
-                    points: const [
-                      'Os seus dados existem só neste celular. Sem backup, '
-                          'se você perder o celular, ele for roubado ou você '
-                          'esquecer o PIN e não puder usar a digital, tudo se '
-                          'perde, e ninguém consegue recuperar, nem nós.',
-                      'O backup é um arquivo protegido por uma senha só sua, '
-                          'que você guarda fora do celular. O app vai lembrar '
-                          'de fazer.',
-                    ],
-                    extra: _reading
-                        ? null
-                        : Column(
-                            children: [
-                              CheckboxListTile(
-                                contentPadding: EdgeInsets.zero,
-                                value: _understood,
-                                onChanged: (v) =>
-                                    setState(() => _understood = v ?? false),
-                                title: const Text(
-                                  'Entendi que, sem backup, perco os dados se '
-                                  'perder o celular ou esquecer o PIN',
-                                ),
-                              ),
-                              if (widget.mode == IntroMode.newInstall)
+      body: DotGrid(
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: PageView(
+                  controller: _pages,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    const _Page(
+                      first: true,
+                      title: 'O que o app protege',
+                      points: [
+                        'Seus clientes, vendas e conversas ficam guardados só '
+                            'neste celular, embaralhados (cifrados). Não existe '
+                            'servidor nosso.',
+                        'O app tem PIN e digital próprios e se tranca sozinho '
+                            'quando você sai ou fica um tempo sem usar.',
+                        'O que você apaga no app some de verdade.',
+                        'Nem nós conseguimos ver os seus dados.',
+                      ],
+                    ),
+                    const _Page(
+                      title: 'O que o app não protege',
+                      points: [
+                        'O WhatsApp continua sabendo com quem você conversa e '
+                            'quando, mas não o que vocês dizem.',
+                        'As conversas continuam também no WhatsApp do seu '
+                            'celular principal e nos backups dele. A outra '
+                            'pessoa fica com a cópia dela.',
+                        'Com o celular desbloqueado e o app aberto, quem '
+                            'estiver com ele na mão vê tudo.',
+                        'Abra o WhatsApp do celular principal ao menos uma vez '
+                            'a cada 14 dias, ou o app é desconectado.',
+                        // The one connection besides WhatsApp.
+                        'Ao tocar em "Buscar CEP", só o número do CEP vai para '
+                            'um serviço público de CEP (ViaCEP ou BrasilAPI).',
+                      ],
+                    ),
+                    _Page(
+                      title: 'Faça backup',
+                      points: const [
+                        'Os seus dados existem só neste celular. Sem backup, '
+                            'se você perder o celular, ele for roubado ou você '
+                            'esquecer o PIN e não puder usar a digital, tudo se '
+                            'perde, e ninguém consegue recuperar, nem nós.',
+                        'O backup é um arquivo protegido por uma senha só sua, '
+                            'que você guarda fora do celular. O app vai lembrar '
+                            'de fazer.',
+                      ],
+                      extra: _reading
+                          ? null
+                          : Column(
+                              children: [
                                 CheckboxListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  value: _restore,
+                                  value: _understood,
                                   onChanged: (v) =>
-                                      setState(() => _restore = v ?? false),
+                                      setState(() => _understood = v ?? false),
                                   title: const Text(
-                                    'Tenho um backup para restaurar',
+                                    'Entendi que, sem backup, perco os dados se '
+                                    'perder o celular ou esquecer o PIN',
                                   ),
                                 ),
-                            ],
-                          ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  if (_page > 0)
-                    TextButton(
-                      onPressed: () => _go(_page - 1),
-                      child: const Text('Voltar'),
+                                if (widget.mode == IntroMode.newInstall)
+                                  CheckboxListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    value: _restore,
+                                    onChanged: (v) =>
+                                        setState(() => _restore = v ?? false),
+                                    title: const Text(
+                                      'Tenho um backup para restaurar',
+                                    ),
+                                  ),
+                              ],
+                            ),
                     ),
-                  const Spacer(),
-                  Text('${_page + 1} de 3'),
-                  const Spacer(),
-                  FilledButton(
-                    onPressed: canGo ? _next : null,
-                    child: Text(last && _reading ? 'Fechar' : 'Continuar'),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    if (_page > 0)
+                      TextButton(
+                        onPressed: () => _go(_page - 1),
+                        child: const Text('Voltar'),
+                      ),
+                    const Spacer(),
+                    Text('${_page + 1} de 3'),
+                    const Spacer(),
+                    FilledButton(
+                      onPressed: canGo ? _next : null,
+                      child: Text(last && _reading ? 'Fechar' : 'Continuar'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -173,18 +178,30 @@ class _IntroScreenState extends State<IntroScreen> {
 }
 
 class _Page extends StatelessWidget {
-  const _Page({required this.title, required this.points, this.extra});
+  const _Page({
+    required this.title,
+    required this.points,
+    this.extra,
+    this.first = false,
+  });
 
   final String title;
   final List<String> points;
   final Widget? extra;
+
+  /// The first page opens with the Garoto's face and the app's name.
+  final bool first;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        Text(title, style: Theme.of(context).textTheme.headlineSmall),
+        if (first) ...[
+          const Center(child: BrandLockup(size: 72, vertical: true)),
+          const SizedBox(height: 28),
+        ],
+        SemicolonText(title, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 16),
         for (final p in points)
           Padding(

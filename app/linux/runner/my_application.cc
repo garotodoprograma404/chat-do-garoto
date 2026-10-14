@@ -42,17 +42,104 @@ static void my_application_activate(GApplication* application) {
     }
   }
 #endif
+  // Where the app's files are: next to the executable, in data/.
+  g_autofree gchar* exe = g_file_read_link("/proc/self/exe", nullptr);
+  g_autofree gchar* dir = exe != nullptr ? g_path_get_dirname(exe) : nullptr;
+
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
-    gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "Chat do Garoto");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
+    gtk_window_set_title(window, "Chat do Garoto");
+
+    // The channel's look in the title bar: dark background, the Garoto's
+    // face and "Chat do Garoto;" with the pink ";".
+    GtkWidget* title = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+    if (dir != nullptr) {
+      g_autofree gchar* face = g_build_filename(
+          dir, "data", "flutter_assets", "assets", "brand", "garoto.png",
+          nullptr);
+      g_autoptr(GdkPixbuf) pixbuf =
+          gdk_pixbuf_new_from_file_at_scale(face, 20, 20, TRUE, nullptr);
+      if (pixbuf != nullptr) {
+        gtk_box_pack_start(GTK_BOX(title), gtk_image_new_from_pixbuf(pixbuf),
+                           FALSE, FALSE, 0);
+      }
+    }
+    GtkWidget* name = gtk_label_new(nullptr);
+    gtk_label_set_markup(
+        GTK_LABEL(name),
+        "Chat do Garoto<span foreground=\"#FF2E88\">;</span>");
+    gtk_style_context_add_class(gtk_widget_get_style_context(name),
+                                "brand-title");
+    gtk_box_pack_start(GTK_BOX(title), name, FALSE, FALSE, 0);
+    gtk_widget_show_all(title);
+    gtk_header_bar_set_custom_title(header_bar, title);
+
+    GtkCssProvider* css = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(css, R"css(
+      headerbar {
+        background: #0D1117;
+        background-image: none;
+        border: none;
+        border-bottom: 1px solid #26303D;
+        box-shadow: none;
+        min-height: 40px;
+        padding: 0 6px;
+      }
+      headerbar:backdrop {
+        background: #0D1117;
+      }
+      headerbar .brand-title {
+        color: #E6EDF3;
+        font-family: "Ubuntu Sans Mono", monospace;
+        font-weight: 800;
+        font-size: 15px;
+      }
+      headerbar:backdrop .brand-title {
+        color: #9AA4AE;
+      }
+      headerbar button.titlebutton {
+        background: none;
+        border: none;
+        box-shadow: none;
+        color: #9AA4AE;
+        min-width: 26px;
+        min-height: 26px;
+        padding: 0;
+        margin: 0 3px;
+        border-radius: 999px;
+        -gtk-icon-shadow: none;
+      }
+      headerbar button.titlebutton:hover {
+        background: #16301F;
+        color: #39FF88;
+      }
+      headerbar button.titlebutton.close:hover {
+        background: #FF2E88;
+        color: #0D1117;
+      }
+      decoration, window {
+        background: #0D1117;
+      }
+    )css", -1, nullptr);
+    gtk_style_context_add_provider_for_screen(
+        gtk_window_get_screen(window), GTK_STYLE_PROVIDER(css),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(css);
+
+    gtk_widget_show(GTK_WIDGET(header_bar));
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
     gtk_window_set_title(window, "Chat do Garoto");
   }
 
   gtk_window_set_default_size(window, 1280, 720);
+
+  // The Garoto's face as the window icon (installed next to the app data).
+  if (dir != nullptr) {
+    g_autofree gchar* icon = g_build_filename(dir, "data", "icon.png", nullptr);
+    gtk_window_set_icon_from_file(window, icon, nullptr);
+  }
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(
@@ -62,7 +149,7 @@ static void my_application_activate(GApplication* application) {
   GdkRGBA background_color;
   // Background defaults to black, override it here if necessary, e.g. #00000000
   // for transparent.
-  gdk_rgba_parse(&background_color, "#000000");
+  gdk_rgba_parse(&background_color, "#0D1117");
   fl_view_set_background_color(view, &background_color);
   gtk_widget_show(GTK_WIDGET(view));
   gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(view));

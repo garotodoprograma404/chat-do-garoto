@@ -9,14 +9,14 @@ class ThemeController extends ChangeNotifier {
 
   final KeyVault store;
 
-  ThemeMode mode = ThemeMode.system;
+  ThemeMode mode = ThemeMode.dark;
 
   /// Reads the choice; called before the first frame so nothing flickers.
   Future<void> load() async {
     mode = switch (await store.read()) {
       'light' => ThemeMode.light,
-      'dark' => ThemeMode.dark,
-      _ => ThemeMode.system,
+      'system' => ThemeMode.system,
+      _ => ThemeMode.dark,
     };
     notifyListeners();
   }

@@ -78,12 +78,15 @@ flutter:
     - family: AtkinsonHyperlegibleNext
       fonts:
         - asset: assets/fonts/AtkinsonHyperlegibleNext.ttf
-    - family: BricolageGrotesque
+    - family: UbuntuSansMono
       fonts:
-        - asset: assets/fonts/BricolageGrotesque.ttf
+        - asset: assets/fonts/UbuntuSansMono.ttf
   assets:
     - assets/fonts/OFL-AtkinsonHyperlegibleNext.txt
-    - assets/fonts/OFL-BricolageGrotesque.txt
+    - assets/fonts/UFL-UbuntuSansMono.txt
+    # The Garoto's face, rendered from the channel's official SVGs
+    # (marca/logo/simbolo-transparente.svg and simbolo-claro.svg).
+    - assets/brand/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
