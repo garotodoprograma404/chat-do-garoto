@@ -25,6 +25,7 @@ import '../theme/app_theme.dart';
 import '../theme/components.dart';
 import '../theme/status_colors.dart';
 import 'start_controller.dart';
+import '../theme/responsive.dart';
 
 const _months = [
   'Janeiro',
@@ -134,8 +135,7 @@ class _StartScreenState extends State<StartScreen> {
   };
 
   Future<void> _open(Widget screen) async {
-    await Navigator.of(context)
-        .push(MaterialPageRoute<void>(builder: (_) => screen));
+    await Navigator.of(context).push(appRoute<void>(screen));
     await _c.load();
   }
 

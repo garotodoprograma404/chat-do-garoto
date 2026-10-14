@@ -6,6 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../core_bridge/core_bridge.dart';
 import 'media_platform.dart';
+import '../../theme/responsive.dart';
 
 /// Videos up to this size play in the app; larger ones open with another
 /// app.
@@ -255,6 +256,7 @@ class VideoTile extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
+          settings: const RouteSettings(name: wideRouteName),
           builder: (_) => VideoScreen(bridge: bridge, message: message),
         ),
       ),
@@ -283,7 +285,7 @@ enum _VideoPhase { loading, playing, tooBig, failed, expired }
 
 /// A video full screen, played from memory. Larger than
 /// [maxPlayableVideo], it offers another app.
-class VideoScreen extends StatefulWidget {
+class VideoScreen extends StatefulWidget implements WideScreen {
   const VideoScreen({
     super.key,
     required this.bridge,

@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../scan/barcode_scanner.dart';
 
 import '../settings/settings_menu.dart';
+import '../theme/detail_pane.dart';
 import '../theme/brand_mark.dart';
 import '../theme/components.dart';
 import '../theme/motion.dart';
@@ -66,8 +67,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   void dispose() {
+    _detailReloader.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  final _detailReloader = DetailReloader();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _detailReloader.attach(context, _controller.load);
   }
 
   Future<void> _open(Widget screen) async {
@@ -271,6 +281,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   itemBuilder: (context, i) {
                     final p = products[i];
                     return OpenTile(
+                      selectKey: 'product:${p.id}',
                       onClosed: _controller.load,
                       page: (_) => ProductScreen(
                         repo: widget.repo,
@@ -279,6 +290,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         clock: widget.clock,
                       ),
                       row: (open) => AppListTile(
+                        selected: DetailHost.isSelected(
+                          context,
+                          'product:${p.id}',
+                        ),
                         leading: ProductAvatar(product: p, repo: widget.repo),
                         title: Text(
                           p.name,

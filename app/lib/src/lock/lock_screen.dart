@@ -4,6 +4,7 @@ import 'lock_controller.dart';
 import 'pin_field.dart';
 import '../demo/demo_app.dart';
 import '../theme/brand_mark.dart';
+import '../theme/responsive.dart';
 
 /// The app is locked: only the PIN, biometrics and "forgot the PIN"; no
 /// conversations, names or numbers.
@@ -58,40 +59,45 @@ class _LockScreenState extends State<LockScreen> {
     return Scaffold(
       appBar: AppBar(title: const BrandLockup(size: 30)),
       body: DotGrid(
-        child: ListenableBuilder(
-          listenable: lock,
-          builder: (context, _) => ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              const SizedBox(height: 24),
-              const Center(child: BrandMark(size: 96)),
-              const SizedBox(height: 24),
-              const Text('Digite o PIN para abrir o app.'),
-              const SizedBox(height: 16),
-              PinField(
-                label: 'PIN',
-                enabled: !lock.busy,
-                onComplete: lock.unlock,
-              ),
-              if (lock.message case final message?)
-                Text(
-                  message,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+        child: ContentWidth(
+          maxWidth: formWidth,
+          child: ListenableBuilder(
+            listenable: lock,
+            builder: (context, _) => ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const SizedBox(height: 24),
+                const Center(child: BrandMark(size: 96)),
+                const SizedBox(height: 24),
+                const Text('Digite o PIN para abrir o app.'),
+                const SizedBox(height: 16),
+                PinField(
+                  label: 'PIN',
+                  enabled: !lock.busy,
+                  onComplete: lock.unlock,
                 ),
-              const SizedBox(height: 16),
-              if (lock.biometricsOn)
-                OutlinedButton(
-                  onPressed: lock.busy ? null : lock.unlockWithBiometrics,
-                  child: const Text('Usar a digital'),
+                if (lock.message case final message?)
+                  Text(
+                    message,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                if (lock.biometricsOn)
+                  OutlinedButton(
+                    onPressed: lock.busy ? null : lock.unlockWithBiometrics,
+                    child: const Text('Usar a digital'),
+                  ),
+                TextButton(
+                  onPressed: _forgot,
+                  child: const Text('Esqueci o PIN'),
                 ),
-              TextButton(
-                onPressed: _forgot,
-                child: const Text('Esqueci o PIN'),
-              ),
-              // Show the app to someone without opening my data.
-              const SizedBox(height: 24),
-              const Center(child: DemoButton()),
-            ],
+                // Show the app to someone without opening my data.
+                const SizedBox(height: 24),
+                const Center(child: DemoButton()),
+              ],
+            ),
           ),
         ),
       ),

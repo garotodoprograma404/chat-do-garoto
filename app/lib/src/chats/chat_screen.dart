@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -34,9 +35,10 @@ import 'new_contact_strip.dart';
 import 'quick_replies.dart';
 import '../settings/quick_replies_screen.dart';
 import 'photo_screen.dart';
+import '../theme/responsive.dart';
 
 /// One conversation: read and reply with text.
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends StatefulWidget implements WideScreen {
   const ChatScreen({
     super.key,
     required this.bridge,
@@ -801,91 +803,94 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          if (_showStrip)
-            NewContactStrip(
-              onRegister: _register,
-              onLink: _link,
-              onIgnore: _ignore,
-            ),
-          Expanded(
-            child: ListenableBuilder(
-              listenable: _controller,
-              builder: (context, _) {
-                final entries = _entriesOf(_controller.messages);
-                // Newest at the bottom: the list is reversed so it starts there.
-                return ListView.builder(
-                  reverse: true,
-                  // A screen of messages built ahead while idle: a fast
-                  // fling starts with them ready.
-                  scrollCacheExtent: const ScrollCacheExtent.viewport(1),
-                  padding: const EdgeInsets.all(8),
-                  itemCount: entries.length + (_controller.hasOlder ? 1 : 0),
-                  itemBuilder: (context, i) {
-                    if (i == entries.length) {
-                      return TextButton(
-                        onPressed: _controller.loadOlder,
-                        child: const Text('Carregar anteriores'),
+      body: ContentWidth(
+        maxWidth: chatWidth,
+        child: Column(
+          children: [
+            if (_showStrip)
+              NewContactStrip(
+                onRegister: _register,
+                onLink: _link,
+                onIgnore: _ignore,
+              ),
+            Expanded(
+              child: ListenableBuilder(
+                listenable: _controller,
+                builder: (context, _) {
+                  final entries = _entriesOf(_controller.messages);
+                  // Newest at the bottom: the list is reversed so it starts there.
+                  return ListView.builder(
+                    reverse: true,
+                    // A screen of messages built ahead while idle: a fast
+                    // fling starts with them ready.
+                    scrollCacheExtent: const ScrollCacheExtent.viewport(1),
+                    padding: const EdgeInsets.all(8),
+                    itemCount: entries.length + (_controller.hasOlder ? 1 : 0),
+                    itemBuilder: (context, i) {
+                      if (i == entries.length) {
+                        return TextButton(
+                          onPressed: _controller.loadOlder,
+                          child: const Text('Carregar anteriores'),
+                        );
+                      }
+                      final entry = entries[entries.length - 1 - i];
+                      if (entry case NoteEntry(:final note)) {
+                        final bubble = NoteBubble(
+                          note: note,
+                          onLongPress: () => _noteMenu(note),
+                        );
+                        return _freshNotes.remove(note.id)
+                            ? EnterOnce(
+                                key: ValueKey('note-${note.id}'),
+                                child: bubble,
+                              )
+                            : bubble;
+                      }
+                      final message = (entry as MessageEntry).message;
+                      final bubble = GestureDetector(
+                        // Hold a message to forward it.
+                        onLongPress: () => _messageMenu(message),
+                        child: MessageBubble(
+                          message: message,
+                          showSender: _isGroup,
+                          found:
+                              message.id == widget.focus?.id &&
+                              _controller.inPast,
+                          onRetry: () => _retry(message.id),
+                          // Media from before deliveries 2.5 and 3.6 have
+                          // nothing to download: they keep their marker.
+                          photo: _mediaOf(message),
+                        ),
                       );
-                    }
-                    final entry = entries[entries.length - 1 - i];
-                    if (entry case NoteEntry(:final note)) {
-                      final bubble = NoteBubble(
-                        note: note,
-                        onLongPress: () => _noteMenu(note),
-                      );
-                      return _freshNotes.remove(note.id)
-                          ? EnterOnce(
-                              key: ValueKey('note-${note.id}'),
-                              child: bubble,
-                            )
+                      // Only messages that just arrived animate: the others
+                      // cost no animation while scrolling.
+                      return _controller.fresh.remove(message.id)
+                          ? EnterOnce(key: ValueKey(message.id), child: bubble)
                           : bubble;
-                    }
-                    final message = (entry as MessageEntry).message;
-                    final bubble = GestureDetector(
-                      // Hold a message to forward it.
-                      onLongPress: () => _messageMenu(message),
-                      child: MessageBubble(
-                        message: message,
-                        showSender: _isGroup,
-                        found:
-                            message.id == widget.focus?.id &&
-                            _controller.inPast,
-                        onRetry: () => _retry(message.id),
-                        // Media from before deliveries 2.5 and 3.6 have
-                        // nothing to download: they keep their marker.
-                        photo: _mediaOf(message),
-                      ),
-                    );
-                    // Only messages that just arrived animate: the others
-                    // cost no animation while scrolling.
-                    return _controller.fresh.remove(message.id)
-                        ? EnterOnce(key: ValueKey(message.id), child: bubble)
-                        : bubble;
-                  },
-                );
-              },
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-          ListenableBuilder(
-            listenable: _controller,
-            builder: (context, _) => _controller.inPast
-                ? TextButton(
-                    onPressed: _controller.jumpToLatest,
-                    child: const Text('Ir para as mais recentes'),
-                  )
-                : const SizedBox.shrink(),
-          ),
-          if (_replyQuery case final q?)
-            _QuickReplyList(
-              replies: _replies,
-              query: q,
-              onPick: _useReply,
-              onManage: _crm?.chatPrefs == null ? null : _manageReplies,
+            ListenableBuilder(
+              listenable: _controller,
+              builder: (context, _) => _controller.inPast
+                  ? TextButton(
+                      onPressed: _controller.jumpToLatest,
+                      child: const Text('Ir para as mais recentes'),
+                    )
+                  : const SizedBox.shrink(),
             ),
-          _composer(context),
-        ],
+            if (_replyQuery case final q?)
+              _QuickReplyList(
+                replies: _replies,
+                query: q,
+                onPick: _useReply,
+                onManage: _crm?.chatPrefs == null ? null : _manageReplies,
+              ),
+            _composer(context),
+          ],
+        ),
       ),
     );
   }
@@ -1068,7 +1073,10 @@ class MessageBubble extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 3),
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.82,
+          maxWidth: math.min(
+            MediaQuery.sizeOf(context).width * 0.82,
+            bubbleWidth,
+          ),
         ),
         decoration: BoxDecoration(
           color: bg,
@@ -1168,6 +1176,7 @@ class _Photo extends StatelessWidget {
     final thumb = previewOf(bridge, message);
     void open() => Navigator.of(context).push(
       MaterialPageRoute<void>(
+        settings: const RouteSettings(name: wideRouteName),
         builder: (_) => PhotoScreen(bridge: bridge, message: message),
       ),
     );

@@ -1,12 +1,16 @@
 // Sections and Configurações with fakes.
 import 'package:chat_do_garoto/src/chats/chats_controller.dart';
 import 'package:chat_do_garoto/src/clients/clients_repository.dart';
+import 'package:chat_do_garoto/src/core_bridge/core_bridge.dart';
 import 'package:chat_do_garoto/src/home/home_shell.dart';
 import 'package:chat_do_garoto/src/lock/lock_controller.dart';
 import 'package:chat_do_garoto/src/settings/settings_screen.dart';
+import 'package:chat_do_garoto/src/theme/brand_nav_bar.dart';
+import 'package:chat_do_garoto/src/theme/detail_pane.dart';
 import 'package:chat_do_garoto/src/theme/theme_controller.dart';
 import 'package:chat_do_garoto/src/whatsapp/whatsapp_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_clients_repository.dart';
@@ -35,6 +39,11 @@ Future<(FakeCoreBridge, WhatsAppController)> _whatsapp({
 void main() {
   testWidgets('five sections, opening on Início; Configurações from '
       'Início and from the ⋮ menu', (tester) async {
+    // A phone: the bottom bar.
+    tester.view
+      ..physicalSize = const Size(390, 844)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final (bridge, whatsapp) = await _whatsapp(paired: true);
     final repo = FakeClientsRepository();
     await repo.save(const Client(name: 'Ana', phone: '5511900000001'));
@@ -190,5 +199,118 @@ void main() {
     expect(y('WhatsApp'), lessThan(y('Bateria')));
     expect(y('Dados'), lessThan(y('Backup')));
     expect(y('Segurança'), lessThan(y('Trocar PIN')));
+  });
+
+  group('the layout follows the width', () {
+    Future<void> shell(WidgetTester tester, Size size) async {
+      tester.view
+        ..physicalSize = size
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final (bridge, whatsapp) = await _whatsapp(paired: true);
+      bridge.chats = [
+        const ChatSummary(
+          jid: '5511900000001@s.whatsapp.net',
+          name: 'Ana',
+          lastText: 'oi',
+          lastTs: 1,
+        ),
+      ];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: HomeShell(
+            bridge: bridge,
+            whatsapp: whatsapp,
+            chats: ChatsController(bridge: bridge)..start(),
+            clients: FakeClientsRepository(),
+            products: FakeProductsRepository(),
+            sales: FakeSalesRepository(),
+            onOpenSettings: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the phone has the bottom bar and no side bar', (tester) async {
+      await shell(tester, const Size(390, 844));
+      expect(find.byType(BrandNavBar), findsOneWidget);
+      expect(find.byType(BrandNavRail), findsNothing);
+    });
+
+    testWidgets('the tablet standing has the side bar and one column', (
+      tester,
+    ) async {
+      await shell(tester, const Size(800, 1180));
+      expect(find.byType(BrandNavRail), findsOneWidget);
+      expect(find.byType(BrandNavBar), findsNothing);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(BrandNavRail),
+          matching: find.text('Conversas'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(DetailPane), findsNothing);
+    });
+
+    testWidgets('wide windows open the detail beside the list', (tester) async {
+      await shell(tester, const Size(1440, 900));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(BrandNavRail),
+          matching: find.text('Conversas'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Nothing open: the pane asks to choose one.
+      expect(find.byType(DetailPane), findsOneWidget);
+      expect(find.text('Escolha uma conversa'), findsOneWidget);
+
+      await tester.tap(find.text('Ana'));
+      await tester.pumpAndSettle();
+      expect(find.text('Escolha uma conversa'), findsNothing);
+      // The list stays where it was, with the open row marked.
+      expect(find.text('oi'), findsWidgets);
+
+      // Changing section empties the pane again.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(BrandNavRail),
+          matching: find.text('Clientes'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Escolha um cliente'), findsOneWidget);
+    });
+
+    testWidgets('Esc closes the detail open in the pane', (tester) async {
+      await shell(tester, const Size(1440, 900));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(BrandNavRail),
+          matching: find.text('Conversas'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ana'));
+      await tester.pumpAndSettle();
+      expect(find.text('Escolha uma conversa'), findsNothing);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(find.text('Escolha uma conversa'), findsOneWidget);
+    });
+
+    testWidgets('large text widens the side bar and nothing overflows', (
+      tester,
+    ) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await shell(tester, const Size(1180, 820));
+      final rail = tester.getSize(find.byType(BrandNavRail));
+      expect(rail.width, 120);
+      expect(tester.takeException(), isNull);
+    });
   });
 }

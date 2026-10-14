@@ -18,13 +18,15 @@
 
 Feito pelo [Garoto do Programa;](https://instagram.com/garotodoprograma) · sistema grátis pra comunidade · Android e Linux.
 
-| Início | Conversas | Conversa |
+| Início | Conversas | Clientes |
 | --- | --- | --- |
-| ![Início](docs/imagens/1-inicio.png) | ![Conversas](docs/imagens/2-conversas.png) | ![Uma conversa](docs/imagens/6-conversa.png) |
-| **Clientes** | **Produtos** | **Vendas** |
-| ![Clientes](docs/imagens/3-clientes.png) | ![Produtos](docs/imagens/4-produtos.png) | ![Vendas](docs/imagens/5-vendas.png) |
+| ![Início](docs/imagens/1-inicio.png) | ![Conversas](docs/imagens/2-conversas.png) | ![Clientes](docs/imagens/3-clientes.png) |
+| **Produtos** | **Vendas** | **No celular** |
+| ![Produtos](docs/imagens/4-produtos.png) | ![Vendas](docs/imagens/5-vendas.png) | ![No celular](docs/imagens/6-celular.png) |
 
 <sub>// prints do modo demonstração, tirados do app rodando de verdade. Todo nome e número aí é inventado.</sub>
+
+**Um app só, três tamanhos.** No computador e no tablet deitado: barra lateral, lista e a conversa (ou a ficha) ao lado, como no WhatsApp Desktop. No tablet em pé: barra lateral e uma coluna. No celular: barra de abas embaixo.
 
 ## experimenta em 1 minuto (sem conectar nada);
 
@@ -66,7 +68,7 @@ O app funciona enquanto o WhatsApp oficial do seu celular for aberto pelo menos 
 Nada de criptografia inventada: só biblioteca reconhecida. (0019)
 
 **Feito com processo, do jeito que time sério faz:**
-- **382 testes no app e 131 no Go**, rodando a cada envio no GitHub;
+- **389 testes no app e 131 no Go**, rodando a cada envio no GitHub;
 - o guia de desenvolvimento, com as regras do código: [`CONTRIBUINDO.md`](CONTRIBUINDO.md).
 
 ## como rodar de verdade;

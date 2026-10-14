@@ -6,6 +6,7 @@ import '../clients/validation.dart';
 import '../core_bridge/core_bridge.dart';
 import '../home/crm_scope.dart';
 import '../settings/settings_menu.dart';
+import '../theme/detail_pane.dart';
 import '../theme/brand_mark.dart';
 import '../theme/components.dart';
 import 'chat_clients.dart';
@@ -13,6 +14,7 @@ import 'chat_filters.dart';
 import 'chat_screen.dart';
 import 'chat_search_screen.dart';
 import 'chats_controller.dart';
+import '../theme/responsive.dart';
 
 /// The chat list. Conversations of clients show the name in
 /// their file and a "cliente" mark; filters on top
@@ -61,6 +63,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // A client may have been saved from the conversation open beside.
+    _detailReloader.attach(context, () => _names?.load());
     if (_names == null && widget.clients != null) {
       final crm = CrmScope.maybeOf(context);
       _names = ChatClients(
@@ -81,8 +85,11 @@ class _ChatsScreenState extends State<ChatsScreen> {
     }
   }
 
+  final _detailReloader = DetailReloader();
+
   @override
   void dispose() {
+    _detailReloader.dispose();
     if (controller.onRevokeDone == _revokeDone) controller.onRevokeDone = null;
     _names?.dispose();
     super.dispose();
@@ -250,9 +257,21 @@ class _ChatsScreenState extends State<ChatsScreen> {
       ),
       // Hold for "Excluir conversa", as in WhatsApp.
       onLongPress: () => _chatMenu(chat),
+      selected: DetailHost.isSelected(context, 'chat:${chat.jid}'),
       onTap: () async {
+        // With a pane beside the list, the conversation opens there.
+        if (DetailHost.peek(context) case final pane?) {
+          pane.open(
+            (_) =>
+                ChatScreen(bridge: bridge, chat: chat, clients: widget.clients),
+            selected: 'chat:${chat.jid}',
+            wide: true,
+          );
+          return;
+        }
         await Navigator.of(context).push(
           MaterialPageRoute<void>(
+            settings: const RouteSettings(name: wideRouteName),
             builder: (_) =>
                 ChatScreen(bridge: bridge, chat: chat, clients: widget.clients),
           ),

@@ -1,3 +1,5 @@
+import 'detail_pane.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -156,7 +158,11 @@ class OpenTile extends StatelessWidget {
     required this.row,
     required this.page,
     this.onClosed,
+    this.selectKey,
   });
+
+  /// What marks this row as the open one in the detail pane ("client:5").
+  final Object? selectKey;
 
   final Widget Function(VoidCallback open) row;
   final WidgetBuilder page;
@@ -165,6 +171,11 @@ class OpenTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return row(() async {
+      // With a pane beside the list the page opens there.
+      if (DetailHost.peek(context) case final pane?) {
+        pane.open(page, selected: selectKey);
+        return;
+      }
       final box = context.findRenderObject() as RenderBox?;
       final origin = box == null || !box.hasSize
           ? null

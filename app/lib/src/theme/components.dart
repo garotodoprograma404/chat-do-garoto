@@ -250,7 +250,11 @@ class AppListTile extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.onLongPress,
+    this.selected = false,
   });
+
+  /// The row open in the detail pane beside the list.
+  final bool selected;
 
   final Widget? leading;
   final Widget title;
@@ -266,49 +270,59 @@ class AppListTile extends StatelessWidget {
     // With large text the trailing part goes under the texts, which keep
     // the whole width.
     final below = trailing != null && largeText(context);
-    return InkWell(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 64),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            children: [
-              if (leading case final l?) ...[l, const SizedBox(width: 16)],
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DefaultTextStyle.merge(style: t.titleMedium, child: title),
-                    if (subtitle case final s?)
+    final c = Theme.of(context).colorScheme;
+    return Material(
+      color: selected ? c.secondaryContainer : Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 64),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              children: [
+                if (leading case final l?) ...[l, const SizedBox(width: 16)],
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       DefaultTextStyle.merge(
-                        style: t.bodyMedium!.copyWith(color: muted),
-                        child: s,
+                        style: t.titleMedium,
+                        child: title,
                       ),
-                    if (below) ...[
-                      const SizedBox(height: 4),
-                      DefaultTextStyle.merge(
-                        style: t.labelLarge,
-                        child: trailing!,
-                      ),
+                      if (subtitle case final s?)
+                        DefaultTextStyle.merge(
+                          style: t.bodyMedium!.copyWith(color: muted),
+                          child: s,
+                        ),
+                      if (below) ...[
+                        const SizedBox(height: 4),
+                        DefaultTextStyle.merge(
+                          style: t.labelLarge,
+                          child: trailing!,
+                        ),
+                      ],
                     ],
-                  ],
-                ),
-              ),
-              if (trailing case final tr? when !below) ...[
-                const SizedBox(width: 12),
-                // With large text a big amount wraps instead of pushing
-                // the title out.
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.sizeOf(context).width * 0.4,
                   ),
-                  child: DefaultTextStyle.merge(style: t.labelLarge, child: tr),
                 ),
+                if (trailing case final tr? when !below) ...[
+                  const SizedBox(width: 12),
+                  // With large text a big amount wraps instead of pushing
+                  // the title out.
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.sizeOf(context).width * 0.4,
+                    ),
+                    child: DefaultTextStyle.merge(
+                      style: t.labelLarge,
+                      child: tr,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

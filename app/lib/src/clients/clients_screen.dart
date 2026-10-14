@@ -6,6 +6,7 @@ import '../home/crm_scope.dart';
 import '../products/money.dart';
 import '../sales/sales_repository.dart';
 import '../settings/settings_menu.dart';
+import '../theme/detail_pane.dart';
 import '../theme/brand_mark.dart';
 import '../theme/components.dart';
 import '../theme/motion.dart';
@@ -57,9 +58,12 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
   @override
   void dispose() {
+    _detailReloader.dispose();
     _controller.dispose();
     super.dispose();
   }
+
+  final _detailReloader = DetailReloader();
 
   Future<void> _open(Widget screen) async {
     await Navigator.of(context)
@@ -78,6 +82,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _detailReloader.attach(context, () {
+      _controller.load();
+      _loadDebts();
+    });
     final sales = CrmScope.maybeOf(context)?.sales;
     if (!identical(sales, _sales)) {
       _sales = sales;
@@ -240,6 +248,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     if (row is String) return SectionHeader(row);
                     final client = row as Client;
                     return OpenTile(
+                      selectKey: 'client:${client.id}',
                       onClosed: () {
                         _controller.load();
                         _loadDebts();
@@ -250,6 +259,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
                         bridge: widget.bridge,
                       ),
                       row: (open) => AppListTile(
+                        selected: DetailHost.isSelected(
+                          context,
+                          'client:${client.id}',
+                        ),
                         leading: InitialsAvatar(client.name),
                         title: Text(
                           client.name,

@@ -16,7 +16,9 @@ import '../sales/sales_repository.dart';
 import '../sales/sales_screen.dart';
 import '../whatsapp/connect_screen.dart';
 import '../theme/brand_nav_bar.dart';
+import '../theme/detail_pane.dart';
 import '../theme/motion.dart';
+import '../theme/responsive.dart';
 import '../whatsapp/whatsapp_controller.dart';
 import 'start_screen.dart';
 
@@ -68,6 +70,22 @@ class _HomeShellState extends State<HomeShell> {
   // The app opens on Início.
   int _section = 0;
 
+  /// The pane beside the list on wide windows.
+  final _detail = DetailController()..emptyTitle = _emptyDetail[0];
+
+  @override
+  void dispose() {
+    _detail.dispose();
+    super.dispose();
+  }
+
+  void _select(int section) {
+    if (section == _section) return;
+    _detail.clear();
+    _detail.emptyTitle = _emptyDetail[section];
+    setState(() => _section = section);
+  }
+
   Widget _start() => switch (widget.clients) {
     null => const Scaffold(body: Center(child: CircularProgressIndicator())),
     final clients => StartScreen(
@@ -80,7 +98,7 @@ class _HomeShellState extends State<HomeShell> {
       // "Ver todas": Conversas with "Sem resposta".
       onOpenWaiting: () {
         widget.chats.setFilter(ChatFilter.waiting);
-        setState(() => _section = 1);
+        _select(1);
       },
     ),
   };
@@ -162,36 +180,94 @@ class _HomeShellState extends State<HomeShell> {
     );
   }
 
+  /// The current section's screen, with the fade between sections
+  Widget _sectionPage(BuildContext context) => PageTransitionSwitcher(
+    duration: Motion.of(context, Motion.item),
+    transitionBuilder: (child, primary, secondary) => FadeThroughTransition(
+      animation: primary,
+      secondaryAnimation: secondary,
+      fillColor: Theme.of(context).colorScheme.surface,
+      child: child,
+    ),
+    child: KeyedSubtree(
+      key: ValueKey(_section),
+      child: switch (_section) {
+        0 => _start(),
+        1 => _conversations(),
+        2 => _clients(),
+        3 => _products(),
+        _ => _sales(),
+      },
+    ),
+  );
+
+  static const _emptyDetail = [
+    '',
+    'Escolha uma conversa',
+    'Escolha um cliente',
+    'Escolha um produto',
+    'Escolha uma venda',
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // Sections change with a fade through.
-      body: _withReminder(
-        PageTransitionSwitcher(
-          duration: Motion.of(context, Motion.item),
-          transitionBuilder: (child, primary, secondary) =>
-              FadeThroughTransition(
-                animation: primary,
-                secondaryAnimation: secondary,
-                fillColor: Theme.of(context).colorScheme.surface,
-                child: child,
-              ),
-          child: KeyedSubtree(
-            key: ValueKey(_section),
-            child: switch (_section) {
-              0 => _start(),
-              1 => _conversations(),
-              2 => _clients(),
-              3 => _products(),
-              _ => _sales(),
-            },
-          ),
+    final size = windowClass(context);
+    final width = MediaQuery.sizeOf(context).width;
+    // The sections with a detail (everything but Início), on wide windows.
+    // Conversas without WhatsApp linked shows the connection screen alone.
+    final split =
+        size == WindowClass.expanded &&
+        _section != 0 &&
+        (_section != 1 || widget.whatsapp.linked);
+    // The list takes a third of the room beside the side bar.
+    final railWidth = BrandNavRail.widthFor(
+      MediaQuery.textScalerOf(context).scale(10) / 10,
+    );
+    final listWidth = ((width - railWidth) * 0.34).clamp(340.0, 420.0);
+
+    Widget body;
+    if (split) {
+      body = DetailHost(
+        controller: _detail,
+        child: Row(
+          children: [
+            SizedBox(width: listWidth, child: _sectionPage(context)),
+            VerticalDivider(
+              width: 1,
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+            Expanded(child: DetailPane(controller: _detail)),
+          ],
         ),
-      ),
-      bottomNavigationBar: BrandNavBar(
-        items: brandSections,
-        selected: _section,
-        onSelected: (i) => setState(() => _section = i),
+      );
+    } else if (size != WindowClass.compact && _section == 0) {
+      // Início is a single column: it stays easy to read on a big window.
+      body = ContentWidth(child: _sectionPage(context));
+    } else {
+      body = _sectionPage(context);
+    }
+
+    if (size == WindowClass.compact) {
+      return Scaffold(
+        body: _withReminder(body),
+        bottomNavigationBar: BrandNavBar(
+          items: brandSections,
+          selected: _section,
+          onSelected: _select,
+        ),
+      );
+    }
+    return Scaffold(
+      body: Row(
+        children: [
+          BrandNavRail(
+            items: brandSections,
+            selected: _section,
+            onSelected: _select,
+            onSettings: widget.onOpenSettings,
+          ),
+          Expanded(child: _withReminder(body)),
+        ],
       ),
     );
   }

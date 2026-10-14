@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../core_bridge/core_bridge.dart';
+import '../theme/responsive.dart';
 
 /// Photos read from the vault for the conversation, kept in memory only
 ///, the most recent [_cacheSize].
@@ -42,7 +43,7 @@ Uint8List? _read(CoreBridge bridge, ChatMessage m, String part) {
 }
 
 /// One photo, full screen: downloaded on demand and shown from memory
-class PhotoScreen extends StatefulWidget {
+class PhotoScreen extends StatefulWidget implements WideScreen {
   const PhotoScreen({super.key, required this.bridge, required this.message});
 
   final CoreBridge bridge;

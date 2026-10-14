@@ -20,6 +20,7 @@ import 'client_timeline.dart';
 import 'clients_controller.dart';
 import 'clients_repository.dart';
 import 'validation.dart';
+import '../theme/responsive.dart';
 
 /// "02/10/2026 09:05".
 String noteTime(DateTime t) {
@@ -112,8 +113,7 @@ class _ClientScreenState extends State<ClientScreen> {
   };
 
   Future<void> _push(Widget screen) =>
-      Navigator.of(context)
-          .push(MaterialPageRoute<void>(builder: (_) => screen));
+      Navigator.of(context).push(appRoute<void>(screen));
 
   ChatScreen _chatScreen(Client client, {String? draft}) => ChatScreen(
     bridge: widget.bridge!,
@@ -518,6 +518,7 @@ class _WhatsAppBlock extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
+                settings: const RouteSettings(name: wideRouteName),
                 builder: (_) => ChatScreen(
                   bridge: bridge,
                   chat: ChatSummary(

@@ -14,6 +14,7 @@ import 'receive_dialog.dart';
 import 'sale_summary.dart';
 import 'sales_repository.dart';
 import 'sales_screen.dart';
+import '../theme/responsive.dart';
 
 /// One sale: items, totals, payments and installments; receive, undo a
 /// receipt, cancel and the summary on WhatsApp.
@@ -140,6 +141,7 @@ class _SaleScreenState extends State<SaleScreen> {
   /// sending stays with the user.
   void _summary(Sale s) => Navigator.of(context).push(
     MaterialPageRoute<void>(
+      settings: const RouteSettings(name: wideRouteName),
       builder: (_) => ChatScreen(
         bridge: ctx.bridge!,
         chat: ChatSummary(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/brand_mark.dart';
+import '../theme/responsive.dart';
 
 /// Shown when `app.db` cannot be opened. Offers to start
 /// over; the WhatsApp connection and messages are not affected.
@@ -52,34 +53,37 @@ class RecoveryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const BrandLockup(size: 30)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(
-            unreadable
-                ? 'Os dados do app não podem ser abertos: a chave que os '
-                      'protege não está mais neste aparelho.'
-                : 'Não foi possível abrir os dados do app com segurança.',
-          ),
-          const SizedBox(height: 16),
-          if (unreadable)
-            FilledButton(
-              onPressed: () => _confirmReset(context),
-              child: const Text('Apagar dados do app e recomeçar'),
-            )
-          else
-            FilledButton(
-              onPressed: onRetry,
-              child: const Text('Tentar de novo'),
+      body: ContentWidth(
+        maxWidth: formWidth,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(
+              unreadable
+                  ? 'Os dados do app não podem ser abertos: a chave que os '
+                        'protege não está mais neste aparelho.'
+                  : 'Não foi possível abrir os dados do app com segurança.',
             ),
-          if (onRestore case final restore?) ...[
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: restore,
-              child: const Text('Restaurar backup'),
-            ),
+            const SizedBox(height: 16),
+            if (unreadable)
+              FilledButton(
+                onPressed: () => _confirmReset(context),
+                child: const Text('Apagar dados do app e recomeçar'),
+              )
+            else
+              FilledButton(
+                onPressed: onRetry,
+                child: const Text('Tentar de novo'),
+              ),
+            if (onRestore case final restore?) ...[
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: restore,
+                child: const Text('Restaurar backup'),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

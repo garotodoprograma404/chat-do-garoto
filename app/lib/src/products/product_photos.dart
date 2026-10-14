@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../theme/components.dart';
 import 'products_repository.dart';
+import '../theme/responsive.dart';
 
 const maxPhotos = 5;
 
@@ -187,7 +188,7 @@ class ProductAvatar extends StatelessWidget {
 }
 
 /// A photo full screen.
-class ProductPhotoScreen extends StatelessWidget {
+class ProductPhotoScreen extends StatelessWidget implements WideScreen {
   const ProductPhotoScreen({super.key, required this.bytes});
 
   final Uint8List bytes;
@@ -202,7 +203,10 @@ class ProductPhotoScreen extends StatelessWidget {
 }
 
 /// Opens [bytes] full screen.
-void openPhoto(BuildContext context, Uint8List bytes) => Navigator.of(context)
-    .push(
-      MaterialPageRoute<void>(builder: (_) => ProductPhotoScreen(bytes: bytes)),
+void openPhoto(BuildContext context, Uint8List bytes) =>
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        settings: const RouteSettings(name: wideRouteName),
+        builder: (_) => ProductPhotoScreen(bytes: bytes),
+      ),
     );

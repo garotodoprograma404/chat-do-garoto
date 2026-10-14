@@ -8,6 +8,7 @@ import '../demo/demo_app.dart';
 import '../settings/settings_menu.dart';
 import 'whatsapp_controller.dart';
 import '../theme/brand_mark.dart';
+import '../theme/responsive.dart';
 
 /// Links the app to WhatsApp by pairing code or QR code, and shows the
 /// connection once linked.
@@ -37,38 +38,43 @@ class ConnectScreen extends StatelessWidget {
             SettingsMenuButton(onOpenSettings: open),
         ],
       ),
-      body: ListenableBuilder(
-        listenable: controller,
-        builder: (context, _) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            if (controller.notice case final notice?)
-              _Banner(
-                text: notice,
-                color: Theme.of(context).colorScheme.tertiaryContainer,
-              ),
-            if (controller.error case final error?)
-              _Banner(
-                text: error,
-                color: Theme.of(context).colorScheme.errorContainer,
-              ),
-            switch (controller.phase) {
-              WhatsAppPhase.pairing => _Pairing(
-                key: const ValueKey('pairing'),
-                controller: controller,
-              ),
-              WhatsAppPhase.connected => _Connected(controller: controller),
-              WhatsAppPhase.disconnecting => const _Progress('Desconectando…'),
-              _ => const _Progress('Conectando ao WhatsApp…'),
-            },
-            if (onOpenPrototype != null) ...[
-              const Divider(height: 48),
-              TextButton(
-                onPressed: onOpenPrototype,
-                child: const Text('Tela de teste (protótipo)'),
-              ),
+      body: ContentWidth(
+        maxWidth: formWidth,
+        child: ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) => ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              if (controller.notice case final notice?)
+                _Banner(
+                  text: notice,
+                  color: Theme.of(context).colorScheme.tertiaryContainer,
+                ),
+              if (controller.error case final error?)
+                _Banner(
+                  text: error,
+                  color: Theme.of(context).colorScheme.errorContainer,
+                ),
+              switch (controller.phase) {
+                WhatsAppPhase.pairing => _Pairing(
+                  key: const ValueKey('pairing'),
+                  controller: controller,
+                ),
+                WhatsAppPhase.connected => _Connected(controller: controller),
+                WhatsAppPhase.disconnecting => const _Progress(
+                  'Desconectando…',
+                ),
+                _ => const _Progress('Conectando ao WhatsApp…'),
+              },
+              if (onOpenPrototype != null) ...[
+                const Divider(height: 48),
+                TextButton(
+                  onPressed: onOpenPrototype,
+                  child: const Text('Tela de teste (protótipo)'),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

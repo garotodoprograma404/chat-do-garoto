@@ -9,6 +9,7 @@ import 'chat_screen.dart';
 import 'chats_controller.dart';
 import 'chats_screen.dart';
 import 'chat_clients.dart';
+import '../theme/responsive.dart';
 
 /// Search in the conversations, as in WhatsApp:
 /// chats by name (also the client's name) and messages by text.
@@ -73,6 +74,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
   void _open(ChatSummary chat, {ChatMessage? focus}) =>
       Navigator.of(context).push(
         MaterialPageRoute<void>(
+          settings: const RouteSettings(name: wideRouteName),
           builder: (_) => ChatScreen(
             bridge: widget.bridge,
             chat: chat,

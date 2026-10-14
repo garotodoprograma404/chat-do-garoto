@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'responsive.dart';
 import 'status_colors.dart';
 
 /// The app's own look: the Garoto do Programa brand (neon green and pink on
@@ -157,6 +158,7 @@ abstract final class AppTheme {
       fontFamily: textFont,
       textTheme: text,
       scaffoldBackgroundColor: c.surface,
+      pageTransitionsTheme: limitedPageTransitions(),
       extensions: [AppStatusColors.of(brightness)],
       appBarTheme: AppBarTheme(
         backgroundColor: c.surface,
@@ -273,6 +275,8 @@ abstract final class AppTheme {
       ),
       bottomSheetTheme: BottomSheetThemeData(
         showDragHandle: true,
+        // Bottom sheets stay a comfortable width on big windows.
+        constraints: const BoxConstraints(maxWidth: 640),
         backgroundColor: c.surfaceContainerLow,
         surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(

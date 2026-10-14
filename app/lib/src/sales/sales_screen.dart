@@ -7,6 +7,7 @@ import '../products/money.dart';
 import '../products/pricing.dart';
 import '../products/products_repository.dart';
 import '../settings/settings_menu.dart';
+import '../theme/detail_pane.dart';
 import '../theme/brand_mark.dart';
 import '../theme/components.dart';
 import '../theme/motion.dart';
@@ -93,8 +94,17 @@ class _SalesScreenState extends State<SalesScreen>
   late final _tabs = TabController(length: 2, vsync: this);
   final _search = SalesSearch();
 
+  final _detailReloader = DetailReloader();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _detailReloader.attach(context, _controller.load);
+  }
+
   @override
   void dispose() {
+    _detailReloader.dispose();
     _controller.dispose();
     _tabs.dispose();
     _search.dispose();
@@ -465,9 +475,11 @@ class SalesListBody extends StatelessWidget {
           final status = s.status(today);
           rows.add(
             OpenTile(
+              selectKey: 'sale:${s.id}',
               onClosed: c.load,
               page: (_) => SaleScreen(ctx: ctx, id: s.id!),
               row: (open) => AppListTile(
+                selected: DetailHost.isSelected(context, 'sale:${s.id}'),
                 leading: InitialsAvatar(s.clientLabel),
                 title: Text(
                   s.clientLabel,
