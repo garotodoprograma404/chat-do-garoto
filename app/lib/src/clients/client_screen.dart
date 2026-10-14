@@ -264,18 +264,9 @@ class _ClientScreenState extends State<ClientScreen> {
               ),
             ],
           ),
-          body: ListView(
-            // Clear of the system's navigation buttons, so the last ones
-            // ("Abrir conversa") can be tapped.
-            padding: EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              16 + MediaQuery.paddingOf(context).bottom,
-            ),
-            children: [
-              // Who it is, at a glance.
-              Row(
+          body: LayoutBuilder(
+            builder: (context, box) {
+              final header = Row(
                 children: [
                   InitialsAvatar(client.name, size: 56),
                   const SizedBox(width: 16),
@@ -301,29 +292,92 @@ class _ClientScreenState extends State<ClientScreen> {
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              ..._top(context, client),
-              const Divider(height: 32),
-              ..._timeline(context),
-              const Divider(height: 32),
-              Text('Dados', style: Theme.of(context).textTheme.titleMedium),
-              for (final (label, value) in details)
-                if (value.isNotEmpty)
-                  ListTile(
-                    dense: true,
-                    title: Text(label),
-                    subtitle: Text(value),
+              );
+              final data = <Widget>[
+                Text('Dados', style: Theme.of(context).textTheme.titleMedium),
+                for (final (label, value) in details)
+                  if (value.isNotEmpty)
+                    ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(label),
+                      subtitle: Text(value),
+                    ),
+              ];
+              final whatsapp = widget.bridge == null
+                  ? null
+                  : _WhatsAppBlock(
+                      bridge: widget.bridge!,
+                      repo: widget.repo,
+                      client: client,
+                    );
+              // Clear of the system's navigation buttons, so the last ones
+              // ("Abrir conversa") can be tapped.
+              final padding = EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                16 + MediaQuery.paddingOf(context).bottom,
+              );
+              // A wide pane: the timeline beside what we know of the
+              // client, with less scrolling.
+              if (box.maxWidth >= 760) {
+                return SingleChildScrollView(
+                  padding: padding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      header,
+                      const SizedBox(height: 16),
+                      ..._top(context, client),
+                      const Divider(height: 32),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 6,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: _timeline(context),
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Expanded(
+                            flex: 5,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ...data,
+                                if (whatsapp != null) ...[
+                                  const Divider(height: 32),
+                                  whatsapp,
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-              if (widget.bridge case final bridge?) ...[
-                const Divider(height: 32),
-                _WhatsAppBlock(
-                  bridge: bridge,
-                  repo: widget.repo,
-                  client: client,
-                ),
-              ],
-            ],
+                );
+              }
+              return ListView(
+                padding: padding,
+                children: [
+                  header,
+                  const SizedBox(height: 16),
+                  ..._top(context, client),
+                  const Divider(height: 32),
+                  ..._timeline(context),
+                  const Divider(height: 32),
+                  ...data,
+                  if (whatsapp != null) ...[
+                    const Divider(height: 32),
+                    whatsapp,
+                  ],
+                ],
+              );
+            },
           ),
         );
       },
@@ -508,6 +562,7 @@ class _WhatsAppBlock extends StatelessWidget {
           for (final m in messages)
             ListTile(
               dense: true,
+              contentPadding: EdgeInsets.zero,
               title: Text(
                 m.fromMe ? 'Você: ${messageText(m)}' : messageText(m),
                 maxLines: 2,

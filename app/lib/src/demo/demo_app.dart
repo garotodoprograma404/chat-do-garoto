@@ -1,6 +1,12 @@
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 
+import '../backup/backup_controller.dart';
+import '../backup/backup_platform.dart';
+import '../backup/backup_screen.dart';
+import '../lock/lock_controller.dart';
+import '../lock/security_platform.dart';
+import '../settings/settings_screen.dart';
 import '../chats/chat_prefs.dart';
 import '../chats/chats_controller.dart';
 import '../clients/clients_repository.dart';
@@ -71,6 +77,21 @@ class DemoSession {
       keys: const _NoKey(),
     );
     chats = ChatsController(bridge: bridge);
+    lock = LockController(
+      bridge: bridge,
+      security: const _NoBiometrics(),
+      vault: (_) => MemoryKeyVault(),
+    );
+    backup = BackupController(
+      bridge: bridge,
+      platform: const _NoBackupPlatform(),
+      workDir: () async => '',
+      copyAppDb: (path, key) async {},
+      restoreAppDb: (path, key) async {},
+      appSchema: () => AppDatabase.currentVersion,
+      lastStore: MemoryKeyVault(),
+      intervalStore: MemoryKeyVault(),
+    );
   }
 
   final DemoCoreBridge bridge;
@@ -82,6 +103,13 @@ class DemoSession {
   final FormDrafts drafts;
   late final WhatsAppController whatsapp;
   late final ChatsController chats;
+
+  /// A PIN lock that never asks (the demo opens already unlocked), so the
+  /// real Configurações screen works.
+  late final LockController lock;
+
+  /// A backup that goes nowhere: the screen is the real one.
+  late final BackupController backup;
   final photos = DevicePhotoPicker();
 
   /// Builds the demo: an in-memory app.db filled with the demo's store,
@@ -101,11 +129,15 @@ class DemoSession {
     );
     await session.whatsapp.start();
     session.chats.start();
+    await session.lock.start();
+    await session.lock.createPin('123456', '123456');
     return session;
   }
 
   /// Ends the demo: everything it built goes away with the memory.
   Future<void> close() async {
+    lock.dispose();
+    backup.dispose();
     chats.dispose();
     whatsapp.dispose();
     bridge.dispose();
@@ -128,6 +160,38 @@ class MemoryKeyVault implements KeyVault {
 
   @override
   Future<void> delete() async => _value = null;
+}
+
+class _NoBiometrics implements SecurityPlatform {
+  const _NoBiometrics();
+
+  @override
+  Future<bool> biometricsAvailable() async => false;
+
+  @override
+  Future<String> enrollBiometrics(String secretHex) async => secretHex;
+
+  @override
+  Future<String> unlockWithBiometrics(String blob) async => blob;
+
+  @override
+  Future<void> disableBiometrics() async {}
+
+  @override
+  Future<Map<String, String>> keyInfo() async => const {};
+}
+
+class _NoBackupPlatform implements BackupPlatform {
+  const _NoBackupPlatform();
+
+  @override
+  Future<({int fd, String uri})?> create(String name) async => null;
+
+  @override
+  Future<int?> open() async => null;
+
+  @override
+  Future<bool> delete(String uri) async => true;
 }
 
 class _NoKeeper implements ConnectionKeeper {
@@ -216,40 +280,20 @@ class DemoApp extends StatelessWidget {
             products: s.products,
             sales: s.sales,
             photos: s.photos,
-            onOpenSettings: () => _settings(context),
+            onOpenSettings: () {},
+            backup: null,
+            backupBuilder: () => BackupScreen(controller: s.backup),
+            settingsBuilder: (open) => SettingsScreen(
+              whatsapp: s.whatsapp,
+              lock: s.lock,
+              theme: theme,
+              onOpenBackup: () => open(BackupScreen(controller: s.backup)),
+            ),
           ),
         ),
       ),
     );
   }
-
-  /// The demo has no PIN, backup or connection to set: only the look and
-  /// the way out.
-  void _settings(BuildContext context) => showModalBottomSheet<void>(
-    context: context,
-    builder: (sheet) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            title: const Text('Aparência'),
-            subtitle: Text(themeModeLabel(theme.mode)),
-            onTap: () {
-              Navigator.pop(sheet);
-              pickThemeMode(context, theme);
-            },
-          ),
-          ListTile(
-            title: const Text('Sair da demonstração'),
-            onTap: () {
-              Navigator.pop(sheet);
-              onExit();
-            },
-          ),
-        ],
-      ),
-    ),
-  );
 }
 
 /// The strip that never leaves the screen during the demo.

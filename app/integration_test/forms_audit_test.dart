@@ -114,6 +114,31 @@ void main() {
         }
         await goBack();
       }
+      // Configurações and what opens from it.
+      // ignore: avoid_print
+      print('>>> $name / configuracoes');
+      await tester.tap(navItem('Início'));
+      await wait();
+      await tester.tap(find.byTooltip('Configurações').first);
+      await wait(900);
+      await save('$name-configuracoes');
+      final settingsScroll = find.byType(Scrollable);
+      if (settingsScroll.evaluate().isNotEmpty) {
+        await tester.drag(settingsScroll.last, const Offset(0, -2000));
+        await wait(400);
+        await save('$name-configuracoes-fim');
+      }
+      await tester.drag(settingsScroll.last, const Offset(0, 2000));
+      await wait(300);
+      // ignore: avoid_print
+      print('>>> $name / backup');
+      await tester.tap(find.text('Backup').first);
+      await wait(900);
+      await save('$name-backup');
+      await goBack();
+      await tester.tap(navItem('Início'));
+      await wait();
+
       // The detail pages with their own actions.
       for (final (section, row, picture) in const [
         ('Clientes', 'Bruno Costa', 'ficha-cliente'),

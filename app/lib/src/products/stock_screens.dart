@@ -208,6 +208,7 @@ class _StockMoveScreenState extends State<StockMoveScreen> {
               TextField(
                 controller: _quantity,
                 keyboardType: _decimal,
+                inputFormatters: [Masks.decimal],
                 decoration: InputDecoration(
                   labelText: _kind == MoveKind.count
                       ? 'Quantidade contada (${p.unit})'

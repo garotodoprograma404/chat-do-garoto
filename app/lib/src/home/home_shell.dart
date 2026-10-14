@@ -38,6 +38,8 @@ class HomeShell extends StatefulWidget {
     this.onOpenPrototype,
     this.backup,
     this.onOpenBackup,
+    this.settingsBuilder,
+    this.backupBuilder,
   });
 
   final CoreBridge bridge;
@@ -61,6 +63,13 @@ class HomeShell extends StatefulWidget {
   /// The backup reminder at the top and what it opens.
   final BackupController? backup;
   final VoidCallback? onOpenBackup;
+
+  /// Configurações and Backup as pages the shell opens itself, inside the
+  /// content beside the side bar. [settingsBuilder] gets the
+  /// function that opens another page the same way. When null, the
+  /// callbacks above are used.
+  final Widget Function(void Function(Widget page) open)? settingsBuilder;
+  final Widget Function()? backupBuilder;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -95,6 +104,29 @@ class _HomeShellState extends State<HomeShell> {
     super.dispose();
   }
 
+  /// Opens [page] over the section: inside the content when there is a
+  /// side bar (it stays visible), over the whole app on a phone.
+  void _openPage(Widget page) {
+    final nav = _contentNav.currentState ?? Navigator.of(context);
+    nav.push(appRoute<void>(page));
+  }
+
+  void _openSettings() {
+    if (widget.settingsBuilder case final build?) {
+      _openPage(build(_openPage));
+    } else {
+      widget.onOpenSettings();
+    }
+  }
+
+  void _openBackup() {
+    if (widget.backupBuilder case final build?) {
+      _openPage(build());
+    } else {
+      widget.onOpenBackup?.call();
+    }
+  }
+
   void _select(int section) {
     if (section == _section) {
       // The section already open: tapping it again goes back to its list,
@@ -118,7 +150,7 @@ class _HomeShellState extends State<HomeShell> {
       sales: widget.sales,
       photos: widget.photos,
       bridge: widget.bridge,
-      onOpenSettings: widget.onOpenSettings,
+      onOpenSettings: _openSettings,
       // "Ver todas": Conversas with "Sem resposta".
       onOpenWaiting: () {
         widget.chats.setFilter(ChatFilter.waiting);
@@ -133,7 +165,7 @@ class _HomeShellState extends State<HomeShell> {
       return ConnectScreen(
         controller: whatsapp,
         onOpenPrototype: widget.onOpenPrototype,
-        onOpenSettings: widget.onOpenSettings,
+        onOpenSettings: _openSettings,
       );
     }
     return ChatsScreen(
@@ -143,7 +175,7 @@ class _HomeShellState extends State<HomeShell> {
         WhatsAppPhase.connected => 'Conectado',
         _ => 'Conectando…',
       },
-      onOpenSettings: widget.onOpenSettings,
+      onOpenSettings: _openSettings,
       clients: widget.clients,
     );
   }
@@ -151,7 +183,7 @@ class _HomeShellState extends State<HomeShell> {
   Widget _clients() => switch (widget.clients) {
     final repo? => ClientsScreen(
       repo: repo,
-      onOpenSettings: widget.onOpenSettings,
+      onOpenSettings: _openSettings,
       bridge: widget.bridge,
     ),
     null => const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -161,7 +193,7 @@ class _HomeShellState extends State<HomeShell> {
     final repo? => ProductsScreen(
       repo: repo,
       photos: widget.photos,
-      onOpenSettings: widget.onOpenSettings,
+      onOpenSettings: _openSettings,
     ),
     null => const Scaffold(body: Center(child: CircularProgressIndicator())),
   };
@@ -174,7 +206,7 @@ class _HomeShellState extends State<HomeShell> {
         clients: widget.clients,
         bridge: widget.bridge,
       ),
-      onOpenSettings: widget.onOpenSettings,
+      onOpenSettings: _openSettings,
     ),
     null => const Scaffold(body: Center(child: CircularProgressIndicator())),
   };
@@ -182,7 +214,9 @@ class _HomeShellState extends State<HomeShell> {
   /// The section under the backup reminder, when it shows.
   Widget _withReminder(Widget section) {
     final backup = widget.backup;
-    final open = widget.onOpenBackup;
+    final open = widget.backupBuilder != null
+        ? _openBackup
+        : widget.onOpenBackup;
     if (backup == null || open == null) return section;
     return ListenableBuilder(
       listenable: backup,
@@ -281,9 +315,6 @@ class _HomeShellState extends State<HomeShell> {
           ],
         ),
       );
-    } else if (size != WindowClass.compact && _section == 0) {
-      // Início is a single column: it stays easy to read on a big window.
-      body = ContentWidth(child: _sectionPage(context));
     } else {
       body = _sectionPage(context);
     }
@@ -299,7 +330,7 @@ class _HomeShellState extends State<HomeShell> {
             items: brandSections,
             selected: _section,
             onSelected: _select,
-            onSettings: widget.onOpenSettings,
+            onSettings: _openSettings,
           ),
           Expanded(
             child: NavigatorPopHandler(

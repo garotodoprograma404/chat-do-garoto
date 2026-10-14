@@ -93,6 +93,11 @@ abstract final class Masks {
     return formatMoney(int.parse(trimmed));
   });
 
+  /// A quantity: digits, one comma and up to three decimals ("1,5",
+  /// "12,250"). A dot typed becomes a comma; letters and a second comma
+  /// are refused.
+  static final TextInputFormatter decimal = _DecimalMask();
+
   /// "13102026" → "13/10/2026"; also "0503" → "05/03" (birthdays).
   static final date = _Mask((d) {
     if (d.length > 8) return null;
@@ -139,6 +144,21 @@ abstract final class Masks {
 
     return d.length <= 11 ? put('000.000.000-00') : put('00.000.000/0000-00');
   });
+}
+
+/// See [Masks.decimal].
+class _DecimalMask extends TextInputFormatter {
+  static final _ok = RegExp(r'^\d{0,9}(,\d{0,3})?$');
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text.replaceAll('.', ',');
+    if (!_ok.hasMatch(text)) return oldValue;
+    return newValue.copyWith(text: text);
+  }
 }
 
 /// A mask over the digits typed: [format] answers the text to show, or

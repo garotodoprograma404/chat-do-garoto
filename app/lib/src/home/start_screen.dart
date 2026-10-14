@@ -203,25 +203,54 @@ class _StartScreenState extends State<StartScreen> {
               ],
             );
           }
-          return ListView(
-            padding: EdgeInsets.only(bottom: bottom),
-            children: [
-              _Today(
-                controller: _c,
-                open: _open,
-                saleCtx: _saleCtx,
-                widget: widget,
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: _Shortcuts(
-                  onSale: _saleCtx?.products == null ? null : _newSale,
-                  onClient: widget.clients == null ? null : _newClient,
-                  onProduct: widget.products == null ? null : _newProduct,
+          final today = _Today(
+            controller: _c,
+            open: _open,
+            saleCtx: _saleCtx,
+            widget: widget,
+          );
+          final shortcuts = Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: _Shortcuts(
+              onSale: _saleCtx?.products == null ? null : _newSale,
+              onClient: widget.clients == null ? null : _newClient,
+              onProduct: widget.products == null ? null : _newProduct,
+            ),
+          );
+          final month = _Month(controller: _c);
+          return LayoutBuilder(
+            builder: (context, box) {
+              // A wide window: what to do today on the left, the shortcuts
+              // and the month on the right.
+              if (box.maxWidth >= 900) {
+                return SingleChildScrollView(
+                  padding: EdgeInsets.only(bottom: bottom),
+                  child: ContentWidth(
+                    maxWidth: 1400,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 6, child: today),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 5,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [shortcuts, month],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return ContentWidth(
+                child: ListView(
+                  padding: EdgeInsets.only(bottom: bottom),
+                  children: [today, shortcuts, month],
                 ),
-              ),
-              _Month(controller: _c),
-            ],
+              );
+            },
           );
         },
       ),

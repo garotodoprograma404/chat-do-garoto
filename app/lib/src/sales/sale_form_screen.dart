@@ -570,7 +570,11 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
     controller: c,
     keyboardType: money || date ? TextInputType.number : keyboard,
     // Money shows "R$ 12,90" while typed.
-    inputFormatters: [if (money) Masks.money, if (date) Masks.date],
+    inputFormatters: [
+      if (money) Masks.money,
+      if (date) Masks.date,
+      if (keyboard == _decimal) Masks.decimal,
+    ],
     decoration: InputDecoration(
       labelText: label,
       hintText: hint,

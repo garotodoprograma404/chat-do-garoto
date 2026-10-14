@@ -785,7 +785,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     controller: controller,
     keyboardType: keyboard,
     maxLines: maxLines,
-    inputFormatters: masks,
+    inputFormatters: [...?masks, if (keyboard == _decimal) Masks.decimal],
     decoration: InputDecoration(
       labelText: label,
       hintText: hint,
@@ -945,6 +945,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             child: TextField(
               controller: d.stock,
               keyboardType: _decimal,
+              inputFormatters: [Masks.decimal],
               decoration: const InputDecoration(labelText: 'Estoque'),
             ),
           ),

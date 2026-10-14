@@ -409,6 +409,19 @@ class _ChatDoGarotoAppState extends State<ChatDoGarotoApp> {
       photos: _photos,
       backup: widget.backup,
       onOpenBackup: () => _openBackup(context),
+      // Configurações and Backup open inside the content, beside the side
+      // bar.
+      backupBuilder: () =>
+          BackupScreen(controller: widget.backup, mediaBytes: _mediaBytes),
+      settingsBuilder: (open) => SettingsScreen(
+        whatsapp: whatsapp,
+        lock: lock,
+        onOpenBackup: () => open(
+          BackupScreen(controller: widget.backup, mediaBytes: _mediaBytes),
+        ),
+        theme: widget.theme,
+        onOpenPrototype: () => open(PrototypeScreen(bridge: widget.bridge)),
+      ),
       onOpenSettings: () => _open(
         context,
         SettingsScreen(
