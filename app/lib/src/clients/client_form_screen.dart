@@ -380,79 +380,82 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       ),
       // A column, not a lazy list: the group opening must not move the
       // focus to another field.
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          24 + MediaQuery.paddingOf(context).bottom,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Only name and phone on top.
-            if (contactPicker case final picker?
-                when widget.initial == null) ...[
-              Align(
-                alignment: Alignment.centerLeft,
-                child: OutlinedButton.icon(
-                  onPressed: () => _fromContacts(picker),
-                  icon: const Icon(Symbols.contacts_rounded),
-                  label: const Text('Escolher da agenda'),
+      body: FormBody(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            24 + MediaQuery.paddingOf(context).bottom,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Only name and phone on top.
+              if (contactPicker case final picker?
+                  when widget.initial == null) ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _fromContacts(picker),
+                    icon: const Icon(Symbols.contacts_rounded),
+                    label: const Text('Escolher da agenda'),
+                  ),
+                ),
+                const FormGap(),
+              ],
+              FormPair(
+                first: _field('name', 'Nome', _name),
+                second: _field(
+                  'phone',
+                  'Telefone (com DDD)',
+                  _phone,
+                  keyboard: TextInputType.phone,
+                  hint: '+55 11 99999-0000',
+                  mask: Masks.phone,
                 ),
               ),
-              const FormGap(),
+              const FormGroupGap(),
+              DetailsGroup(
+                title: 'Mais detalhes',
+                icon: Symbols.person_rounded,
+                summary: _summary ?? 'E-mail, endereço, CPF, aniversário…',
+                open: _details,
+                onToggle: () => setState(() => _details = !_details),
+                children: [
+                  _field(
+                    'email',
+                    'E-mail',
+                    _email,
+                    keyboard: TextInputType.emailAddress,
+                  ),
+                  ..._addressFields(),
+                  _field(
+                    'document',
+                    'CPF ou CNPJ',
+                    _document,
+                    keyboard: TextInputType.number,
+                    mask: Masks.document,
+                  ),
+                  _field(
+                    'birthday',
+                    'Aniversário',
+                    _birthday,
+                    keyboard: TextInputType.number,
+                    hint: 'dd/mm ou dd/mm/aaaa',
+                    mask: Masks.date,
+                  ),
+                  _field('company', 'Empresa', _company),
+                  _field(
+                    'tags',
+                    'Etiquetas',
+                    _tags,
+                    hint: 'separadas por vírgula',
+                  ),
+                ],
+              ),
             ],
-            _field('name', 'Nome', _name),
-            const FormGap(),
-            _field(
-              'phone',
-              'Telefone (com DDD)',
-              _phone,
-              keyboard: TextInputType.phone,
-              hint: '+55 11 99999-0000',
-              mask: Masks.phone,
-            ),
-            const SizedBox(height: 24),
-            DetailsGroup(
-              title: 'Mais detalhes',
-              icon: Symbols.person_rounded,
-              summary: _summary ?? 'E-mail, endereço, CPF, aniversário…',
-              open: _details,
-              onToggle: () => setState(() => _details = !_details),
-              children: [
-                _field(
-                  'email',
-                  'E-mail',
-                  _email,
-                  keyboard: TextInputType.emailAddress,
-                ),
-                ..._addressFields(),
-                _field(
-                  'document',
-                  'CPF ou CNPJ',
-                  _document,
-                  keyboard: TextInputType.number,
-                  mask: Masks.document,
-                ),
-                _field(
-                  'birthday',
-                  'Aniversário',
-                  _birthday,
-                  keyboard: TextInputType.number,
-                  hint: 'dd/mm ou dd/mm/aaaa',
-                  mask: Masks.date,
-                ),
-                _field('company', 'Empresa', _company),
-                _field(
-                  'tags',
-                  'Etiquetas',
-                  _tags,
-                  hint: 'separadas por vírgula',
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -5,12 +5,81 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../products/money.dart';
 import 'motion.dart';
 
-/// The space between two fields of a form.
+/// The space between two fields of a form: 16. Between groups
+/// of fields it is [FormGroupGap].
 class FormGap extends StatelessWidget {
   const FormGap({super.key});
 
   @override
-  Widget build(BuildContext context) => const SizedBox(height: 12);
+  Widget build(BuildContext context) => const SizedBox(height: 16);
+}
+
+/// Two fields side by side when there is room (480 or more), one under the
+/// other with the usual gap when there is not: fewer lines to scroll on
+/// wide windows, the same form on a phone.
+class FormPair extends StatelessWidget {
+  const FormPair({super.key, required this.first, required this.second});
+
+  final Widget first;
+  final Widget second;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      if (box.maxWidth < 480) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [first, const FormGap(), second],
+        );
+      }
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: first),
+          const SizedBox(width: 16),
+          Expanded(child: second),
+        ],
+      );
+    },
+  );
+}
+
+/// The space between two groups of a form: 24.
+class FormGroupGap extends StatelessWidget {
+  const FormGroupGap({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(height: 24);
+}
+
+/// The body of a form: text buttons and links sit on the same
+/// left edge as the fields (no inner margin of their own), still with a
+/// 48 high touch target. Wrap the whole scrollable body in it.
+class FormBody extends StatelessWidget {
+  const FormBody({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final base = theme.textButtonTheme.style ?? const ButtonStyle();
+    return Theme(
+      data: theme.copyWith(
+        textButtonTheme: TextButtonThemeData(
+          style: base.merge(
+            TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              alignment: Alignment.centerLeft,
+              minimumSize: const Size(48, 48),
+              tapTargetSize: MaterialTapTargetSize.padded,
+            ),
+          ),
+        ),
+      ),
+      child: child,
+    );
+  }
 }
 
 /// Masks while typing. Pure, so they are tested

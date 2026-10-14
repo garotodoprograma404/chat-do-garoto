@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 
@@ -108,7 +109,23 @@ class WidthLimitedTransitions extends PageTransitionsBuilder {
                 ? child
                 : ColoredBox(
                     color: Theme.of(context).scaffoldBackgroundColor,
-                    child: ContentWidth(maxWidth: formWidth, child: child),
+                    child: ContentWidth(
+                      maxWidth: formWidth,
+                      // A thin edge on each side: the page reads as one
+                      // panel, bars included.
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          border: Border.symmetric(
+                            vertical: BorderSide(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .outlineVariant,
+                            ),
+                          ),
+                        ),
+                        child: child,
+                      ),
+                    ),
                   ),
           );
     return inner.buildTransitions(
@@ -135,3 +152,49 @@ PageTransitionsBuilder _defaultTransition(TargetPlatform platform) =>
       TargetPlatform.macOS => const CupertinoPageTransitionsBuilder(),
       _ => const ZoomPageTransitionsBuilder(),
     };
+
+/// A row of filter chips. Phones keep one scrolling line (a finger drags
+/// it); wider windows wrap onto more lines, so nothing hides off the edge
+/// where a mouse cannot reach.
+class FilterBar extends StatelessWidget {
+  const FilterBar({
+    super.key,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16),
+    required this.children,
+  });
+
+  final EdgeInsetsGeometry padding;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    if (windowClass(context) == WindowClass.compact) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: padding,
+        child: Row(spacing: 8, children: children),
+      );
+    }
+    return Padding(
+      padding: padding,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Wrap(spacing: 8, runSpacing: 8, children: children),
+      ),
+    );
+  }
+}
+
+/// Lets a mouse or a trackpad drag scrollables, as a finger does: on the
+/// desktop the default would leave them still.
+class AppScrollBehavior extends MaterialScrollBehavior {
+  const AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.stylus,
+  };
+}

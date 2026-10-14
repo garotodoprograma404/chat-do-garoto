@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../theme/responsive.dart';
 import '../scan/barcode_scanner.dart';
 
 import '../settings/settings_menu.dart';
@@ -86,13 +87,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
     await _controller.load();
   }
 
-  Widget _chip(String label, bool selected, VoidCallback onTap) => Padding(
-    padding: const EdgeInsets.only(left: 4),
-    child: FilterChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (_) => onTap(),
-    ),
+  Widget _chip(String label, bool selected, VoidCallback onTap) => FilterChip(
+    label: Text(label),
+    selected: selected,
+    onSelected: (_) => onTap(),
   );
 
   /// The price, with the regular one struck when on promotion, and the
@@ -243,24 +241,20 @@ class _ProductsScreenState extends State<ProductsScreen> {
           return Column(
             children: [
               AppSearchField(hint: 'Buscar produtos', onChanged: c.search),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: [
-                    _chip('Estoque baixo', c.lowStock, c.toggleLowStock),
-                    _chip('Sem estoque', c.outOfStock, c.toggleOutOfStock),
-                    _chip('Em promoção', c.onPromo, c.togglePromo),
-                    _chip('Vencendo', c.expiring, c.toggleExpiring),
-                    _chip('Inativos', c.showInactive, c.toggleInactive),
-                    for (final category in c.allCategories)
-                      _chip(
-                        category,
-                        c.categories.contains(category),
-                        () => c.toggleCategory(category),
-                      ),
-                  ],
-                ),
+              FilterBar(
+                children: [
+                  _chip('Estoque baixo', c.lowStock, c.toggleLowStock),
+                  _chip('Sem estoque', c.outOfStock, c.toggleOutOfStock),
+                  _chip('Em promoção', c.onPromo, c.togglePromo),
+                  _chip('Vencendo', c.expiring, c.toggleExpiring),
+                  _chip('Inativos', c.showInactive, c.toggleInactive),
+                  for (final category in c.allCategories)
+                    _chip(
+                      category,
+                      c.categories.contains(category),
+                      () => c.toggleCategory(category),
+                    ),
+                ],
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),

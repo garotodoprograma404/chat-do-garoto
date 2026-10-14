@@ -73,17 +73,41 @@ class _HomeShellState extends State<HomeShell> {
   /// The pane beside the list on wide windows.
   final _detail = DetailController()..emptyTitle = _emptyDetail[0];
 
+  /// The navigator of everything right of the side bar: pages
+  /// opened from a section (a form, a picker) cover the content only, so
+  /// the side bar stays where it is.
+  final _contentNav = GlobalKey<NavigatorState>();
+
+  /// Pinged when the shell's own state or props change, to redraw the
+  /// content inside that navigator.
+  final _redraw = _Redraw();
+
+  @override
+  void didUpdateWidget(HomeShell old) {
+    super.didUpdateWidget(old);
+    _redraw.ping();
+  }
+
   @override
   void dispose() {
+    _redraw.dispose();
     _detail.dispose();
     super.dispose();
   }
 
   void _select(int section) {
-    if (section == _section) return;
+    if (section == _section) {
+      // The section already open: tapping it again goes back to its list,
+      // closing a form or a picker opened over it.
+      _contentNav.currentState?.popUntil((r) => r.isFirst);
+      return;
+    }
     _detail.clear();
     _detail.emptyTitle = _emptyDetail[section];
+    // Leaving a section closes what was opened over it.
+    _contentNav.currentState?.popUntil((r) => r.isFirst);
     setState(() => _section = section);
+    _redraw.ping();
   }
 
   Widget _start() => switch (widget.clients) {
@@ -212,6 +236,23 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final size = windowClass(context);
+    if (size == WindowClass.compact) {
+      return Scaffold(
+        body: _withReminder(_body(context)),
+        bottomNavigationBar: BrandNavBar(
+          items: brandSections,
+          selected: _section,
+          onSelected: _select,
+        ),
+      );
+    }
+    return _shell(context);
+  }
+
+  /// What a section shows: the list with its detail pane on wide windows,
+  /// Início in a reading column, or the section alone.
+  Widget _body(BuildContext context) {
+    final size = windowClass(context);
     final width = MediaQuery.sizeOf(context).width;
     // The sections with a detail (everything but Início), on wide windows.
     // Conversas without WhatsApp linked shows the connection screen alone.
@@ -247,16 +288,10 @@ class _HomeShellState extends State<HomeShell> {
       body = _sectionPage(context);
     }
 
-    if (size == WindowClass.compact) {
-      return Scaffold(
-        body: _withReminder(body),
-        bottomNavigationBar: BrandNavBar(
-          items: brandSections,
-          selected: _section,
-          onSelected: _select,
-        ),
-      );
-    }
+    return body;
+  }
+
+  Widget _shell(BuildContext context) {
     return Scaffold(
       body: Row(
         children: [
@@ -266,9 +301,28 @@ class _HomeShellState extends State<HomeShell> {
             onSelected: _select,
             onSettings: widget.onOpenSettings,
           ),
-          Expanded(child: _withReminder(body)),
+          Expanded(
+            child: NavigatorPopHandler(
+              onPopWithResult: (_) => _contentNav.currentState?.maybePop(),
+              child: Navigator(
+                key: _contentNav,
+                onGenerateRoute: (_) => PageRouteBuilder<void>(
+                  pageBuilder: (context, _, _) => ListenableBuilder(
+                    listenable: _redraw,
+                    builder: (context, _) => _withReminder(_body(context)),
+                  ),
+                  transitionDuration: Duration.zero,
+                  reverseTransitionDuration: Duration.zero,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+class _Redraw extends ChangeNotifier {
+  void ping() => notifyListeners();
 }

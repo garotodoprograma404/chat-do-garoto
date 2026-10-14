@@ -54,10 +54,21 @@ class SalesController extends ChangeNotifier {
   DateTime get today => _clock();
 
   Future<void> load() async {
-    all = clientId == null
+    final loaded = clientId == null
         ? await _repo.list()
         : await _repo.byClient(clientId!);
+    // The screen may be gone while the database answered (section changed).
+    if (_disposed) return;
+    all = loaded;
     notifyListeners();
+  }
+
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 
   bool _inPeriod(DateTime soldAt) {

@@ -284,6 +284,33 @@ void main() {
       expect(find.text('Escolha um cliente'), findsOneWidget);
     });
 
+    testWidgets('a form opened over a section closes by tapping the section', (
+      tester,
+    ) async {
+      await shell(tester, const Size(1440, 900));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(BrandNavRail),
+          matching: find.text('Clientes'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Novo cliente'));
+      await tester.pumpAndSettle();
+      expect(find.text('Telefone (com DDD)'), findsOneWidget);
+      // The side bar is still there beside the form.
+      expect(find.byType(BrandNavRail), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(BrandNavRail),
+          matching: find.text('Clientes'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Telefone (com DDD)'), findsNothing);
+    });
+
     testWidgets('Esc closes the detail open in the pane', (tester) async {
       await shell(tester, const Size(1440, 900));
       await tester.tap(

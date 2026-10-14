@@ -9,8 +9,9 @@ import 'status_colors.dart';
 /// keep the contrast. Colors with a meaning (overdue, paid) live in
 /// `status_colors.dart` and may leave the brand palette.
 abstract final class AppTheme {
-  /// Body text, lists and numbers.
-  static const textFont = 'AtkinsonHyperlegibleNext';
+  /// Body text, lists and numbers: the sans of the same family as the
+  /// titles. Its zero has no slash, so prices, dates and phones read clean.
+  static const textFont = 'UbuntuSans';
 
   /// Titles and big amounts: the channel's mono font.
   static const displayFont = 'UbuntuSansMono';

@@ -16,6 +16,7 @@ import '../storage/form_drafts.dart';
 import '../storage/key_vault.dart';
 import '../theme/app_theme.dart';
 import '../theme/brand_mark.dart';
+import '../theme/responsive.dart';
 import '../theme/theme_controller.dart';
 import '../whatsapp/whatsapp_controller.dart';
 import 'demo_core_bridge.dart';
@@ -180,6 +181,7 @@ class DemoApp extends StatelessWidget {
       listenable: theme,
       builder: (context, _) => MaterialApp(
         title: 'Chat do Garoto · demonstração',
+        scrollBehavior: const AppScrollBehavior(),
         // The strip's "Sair" sits where the debug banner would.
         debugShowCheckedModeBanner: false,
         theme: _light,

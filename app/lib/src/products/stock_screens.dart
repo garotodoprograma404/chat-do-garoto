@@ -160,93 +160,102 @@ class _StockMoveScreenState extends State<StockMoveScreen> {
       ),
       // A column, not a lazy list: fields that come and go must not move
       // the focus to another field.
-      body: SingleChildScrollView(
-        // Content drawn behind the system navigation bar must scroll above
-        // it (edge to edge on Android).
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          16 + MediaQuery.paddingOf(context).bottom,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(p.name, style: Theme.of(context).textTheme.titleMedium),
-            if (p.hasVariants)
-              DropdownButtonFormField<int>(
-                initialValue: _variant.id,
-                decoration: const InputDecoration(labelText: 'Variação'),
-                items: [
-                  for (final v in p.variants)
-                    DropdownMenuItem(
-                      value: v.id,
-                      child: Text('${v.label} (${stockText(v.stock, p.unit)})'),
-                    ),
-                ],
-                onChanged: (id) => setState(
-                  () => _variant = p.variants.firstWhere((v) => v.id == id),
+      body: FormBody(
+        child: SingleChildScrollView(
+          // Content drawn behind the system navigation bar must scroll above
+          // it (edge to edge on Android).
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            16 + MediaQuery.paddingOf(context).bottom,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(p.name, style: Theme.of(context).textTheme.titleMedium),
+              if (p.hasVariants)
+                DropdownButtonFormField<int>(
+                  initialValue: _variant.id,
+                  decoration: const InputDecoration(labelText: 'Variação'),
+                  items: [
+                    for (final v in p.variants)
+                      DropdownMenuItem(
+                        value: v.id,
+                        child: Text(
+                          '${v.label} (${stockText(v.stock, p.unit)})',
+                        ),
+                      ),
+                  ],
+                  onChanged: (id) => setState(
+                    () => _variant = p.variants.firstWhere((v) => v.id == id),
+                  ),
                 ),
+              Text(
+                'Estoque atual: ${stockText(_variant.stock, p.unit)} · custo '
+                '${formatMoney(_variant.cost)}',
               ),
-            Text(
-              'Estoque atual: ${stockText(_variant.stock, p.unit)} · custo '
-              '${formatMoney(_variant.cost)}',
-            ),
-            const SizedBox(height: 8),
-            SegmentedButton<MoveKind>(
-              segments: const [
-                ButtonSegment(value: MoveKind.entry, label: Text('Entrada')),
-                ButtonSegment(value: MoveKind.exit, label: Text('Saída')),
-                ButtonSegment(value: MoveKind.count, label: Text('Balanço')),
-              ],
-              selected: {_kind},
-              onSelectionChanged: (s) => setState(() => _kind = s.single),
-            ),
-            TextField(
-              controller: _quantity,
-              keyboardType: _decimal,
-              decoration: InputDecoration(
-                labelText: _kind == MoveKind.count
-                    ? 'Quantidade contada (${p.unit})'
-                    : 'Quantidade (${p.unit})',
-                errorText: _errors['quantity'],
-              ),
-            ),
-            if (_kind == MoveKind.entry)
-              TextField(
-                controller: _unitCost,
-                keyboardType: TextInputType.number,
-                inputFormatters: [Masks.money],
-                decoration: InputDecoration(
-                  labelText: 'Custo unitário (opcional)',
-                  errorText: _errors['unitCost'],
-                ),
-              ),
-            if (_kind == MoveKind.exit) ...[
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 4,
-                children: [
-                  for (final r in exitReasons)
-                    ChoiceChip(
-                      label: Text(r),
-                      selected: _reason == r,
-                      onSelected: (_) => setState(() => _reason = r),
-                    ),
+              SegmentedButton<MoveKind>(
+                segments: const [
+                  ButtonSegment(value: MoveKind.entry, label: Text('Entrada')),
+                  ButtonSegment(value: MoveKind.exit, label: Text('Saída')),
+                  ButtonSegment(value: MoveKind.count, label: Text('Balanço')),
                 ],
+                selected: {_kind},
+                onSelectionChanged: (s) => setState(() => _kind = s.single),
               ),
-              if (_errors['reason'] case final e?)
-                Text(
-                  e,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+              TextField(
+                controller: _quantity,
+                keyboardType: _decimal,
+                decoration: InputDecoration(
+                  labelText: _kind == MoveKind.count
+                      ? 'Quantidade contada (${p.unit})'
+                      : 'Quantidade (${p.unit})',
+                  errorText: _errors['quantity'],
                 ),
+              ),
+              if (_kind == MoveKind.entry)
+                TextField(
+                  controller: _unitCost,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [Masks.money],
+                  decoration: InputDecoration(
+                    labelText: 'Custo unitário (opcional)',
+                    errorText: _errors['unitCost'],
+                  ),
+                ),
+              if (_kind == MoveKind.exit) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 4,
+                  children: [
+                    for (final r in exitReasons)
+                      ChoiceChip(
+                        label: Text(r),
+                        selected: _reason == r,
+                        onSelected: (_) => setState(() => _reason = r),
+                      ),
+                  ],
+                ),
+                if (_errors['reason'] case final e?)
+                  Text(
+                    e,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+              ],
+              TextField(
+                controller: _note,
+                decoration: const InputDecoration(labelText: 'Observação'),
+              ),
+              if (preview != null) ...[
+                const SizedBox(height: 8),
+                Text(preview),
+              ],
             ],
-            TextField(
-              controller: _note,
-              decoration: const InputDecoration(labelText: 'Observação'),
-            ),
-            if (preview != null) ...[const SizedBox(height: 8), Text(preview)],
-          ],
+          ),
         ),
       ),
     );

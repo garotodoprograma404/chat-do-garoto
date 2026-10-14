@@ -75,14 +75,13 @@ flutter:
   # The app's fonts, bundled (never downloaded). Both are
   # variable; FontWeight drives their weight axis. Licenses (OFL) go along.
   fonts:
-    - family: AtkinsonHyperlegibleNext
+    - family: UbuntuSans
       fonts:
-        - asset: assets/fonts/AtkinsonHyperlegibleNext.ttf
+        - asset: assets/fonts/UbuntuSans.ttf
     - family: UbuntuSansMono
       fonts:
         - asset: assets/fonts/UbuntuSansMono.ttf
   assets:
-    - assets/fonts/OFL-AtkinsonHyperlegibleNext.txt
     - assets/fonts/UFL-UbuntuSansMono.txt
     # The Garoto's face, rendered from the channel's official SVGs
     # (marca/logo/simbolo-transparente.svg and simbolo-claro.svg).

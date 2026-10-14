@@ -56,10 +56,22 @@ class ClientsController extends ChangeNotifier {
   Set<int> _gone = const {};
 
   Future<void> load() async {
-    all = await _repo.list();
-    _notes = await _repo.noteTexts();
+    final loaded = await _repo.list();
+    final texts = await _repo.noteTexts();
+    // The screen may be gone while the database answered (section changed).
+    if (_disposed) return;
+    all = loaded;
+    _notes = texts;
     _lastChat = _lastChats();
     notifyListeners();
+  }
+
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 
   /// When each client last talked on WhatsApp (Unix ms).
@@ -200,10 +212,21 @@ class ClientController extends ChangeNotifier {
   bool loaded = false;
 
   Future<void> load() async {
-    client = await _repo.byId(id);
-    notes = client == null ? const [] : await _repo.notes(id);
+    final found = await _repo.byId(id);
+    final noted = found == null ? const <ClientNote>[] : await _repo.notes(id);
+    if (_disposed) return;
+    client = found;
+    notes = noted;
     loaded = true;
     notifyListeners();
+  }
+
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 
   /// Adds a note; blank text is ignored.

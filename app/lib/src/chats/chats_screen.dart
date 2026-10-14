@@ -300,26 +300,22 @@ class _Filters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    return FilterBar(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-      child: Row(
-        spacing: 8,
-        children: [
-          for (final f in ChatFilter.values)
-            if (withCrm || !f.needsCrm)
-              ChoiceChip(
-                label: Text(
-                  f == ChatFilter.waiting && waiting > 0
-                      ? '${chatFilterLabels[f]} $waiting'
-                      : chatFilterLabels[f]!,
-                ),
-                selected: selected == f,
-                showCheckmark: false,
-                onSelected: (_) => onSelected(f),
+      children: [
+        for (final f in ChatFilter.values)
+          if (withCrm || !f.needsCrm)
+            ChoiceChip(
+              label: Text(
+                f == ChatFilter.waiting && waiting > 0
+                    ? '${chatFilterLabels[f]} $waiting'
+                    : chatFilterLabels[f]!,
               ),
-        ],
-      ),
+              selected: selected == f,
+              showCheckmark: false,
+              onSelected: (_) => onSelected(f),
+            ),
+      ],
     );
   }
 }

@@ -1,0 +1,140 @@
+// Opens every form and full-screen page of the demo at phone, tablet and
+// desktop sizes and saves a picture of each: the screens the
+// first layout audit did not cover.
+//   flutter test integration_test/forms_audit_test.dart -d linux \
+//     --dart-define=SCREENS_OUT=<folder>
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:chat_do_garoto/src/demo/demo_app.dart';
+import 'package:chat_do_garoto/src/theme/brand_nav_bar.dart';
+import 'package:chat_do_garoto/src/theme/theme_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+
+const _out = String.fromEnvironment(
+  'SCREENS_OUT',
+  defaultValue: 'build/screens',
+);
+
+const _sizes = {
+  'celular': Size(390, 844),
+  'tablet': Size(800, 1180),
+  'computador': Size(1440, 900),
+};
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('forms and pages', (tester) async {
+    final shot = GlobalKey();
+    final session = await DemoSession.open();
+    addTearDown(tester.view.reset);
+    tester.view.devicePixelRatio = 1;
+
+    Future<void> wait([int ms = 700]) async {
+      await Future<void>.delayed(Duration(milliseconds: ms));
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pump();
+    }
+
+    Future<void> save(String name) async {
+      final boundary =
+          shot.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      final image = await boundary.toImage();
+      final png = await image.toByteData(format: ui.ImageByteFormat.png);
+      Directory(_out).createSync(recursive: true);
+      File('$_out/$name.png').writeAsBytesSync(png!.buffer.asUint8List());
+    }
+
+    Finder navItem(String label) => find.descendant(
+      of: find.byWidgetPredicate((w) => w is BrandNavBar || w is BrandNavRail),
+      matching: find.text(label),
+    );
+
+    Future<void> goBack() async {
+      // Back to the shell: pop whatever is open over it (the pane, if any,
+      // is emptied by changing section).
+      for (var i = 0; i < 3; i++) {
+        // On the phone the form sits on the app's navigator; beside the side
+        // bar, tapping the section (next step) closes it.
+        final nav = tester.state<NavigatorState>(find.byType(Navigator).first);
+        if (!nav.canPop()) break;
+        nav.pop();
+        await wait(400);
+      }
+    }
+
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: shot,
+        child: DemoApp(
+          session: session,
+          theme: ThemeController(store: MemoryKeyVault())
+            ..mode = ThemeMode.dark,
+          onExit: () {},
+        ),
+      ),
+    );
+
+    // (section, button, picture name)
+    const forms = [
+      ('Clientes', 'Novo cliente', 'novo-cliente'),
+      ('Produtos', 'Novo produto', 'novo-produto'),
+      ('Vendas', 'Nova venda', 'nova-venda'),
+      ('Vendas', 'Venda rápida', 'venda-rapida'),
+    ];
+
+    for (final MapEntry(key: name, value: size) in _sizes.entries) {
+      tester.view.physicalSize = size;
+      await wait();
+      for (final (section, button, picture) in forms) {
+        // ignore: avoid_print
+        print('>>> $name / $picture');
+        await tester.tap(navItem(section));
+        await wait();
+        final fab = find.text(button);
+        if (fab.evaluate().isEmpty) {
+          // ignore: avoid_print
+          print('!!! sem botao $button em $name');
+          continue;
+        }
+        await tester.tap(fab.last);
+        await wait(900);
+        await save('$name-$picture');
+        // The lower half of a long form.
+        final scroll = find.byType(Scrollable);
+        if (scroll.evaluate().isNotEmpty) {
+          await tester.drag(scroll.last, const Offset(0, -2000));
+          await wait(400);
+          await save('$name-$picture-fim');
+        }
+        await goBack();
+      }
+      // The detail pages with their own actions.
+      for (final (section, row, picture) in const [
+        ('Clientes', 'Bruno Costa', 'ficha-cliente'),
+        ('Produtos', 'Moletom', 'ficha-produto'),
+        ('Vendas', 'Carla Mendes', 'ficha-venda'),
+      ]) {
+        // ignore: avoid_print
+        print('>>> $name / $picture');
+        await tester.tap(navItem(section));
+        await wait();
+        await tester.tap(find.textContaining(row).first);
+        await wait(900);
+        final scroll = find.byType(Scrollable);
+        if (scroll.evaluate().isNotEmpty) {
+          await tester.drag(scroll.last, const Offset(0, -2000));
+          await wait(400);
+        }
+        await save('$name-$picture-fim');
+        await goBack();
+      }
+    }
+    await session.close();
+  });
+}

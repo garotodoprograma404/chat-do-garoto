@@ -68,7 +68,7 @@ O app funciona enquanto o WhatsApp oficial do seu celular for aberto pelo menos 
 Nada de criptografia inventada: só biblioteca reconhecida. (0019)
 
 **Feito com processo, do jeito que time sério faz:**
-- **389 testes no app e 131 no Go**, rodando a cada envio no GitHub;
+- **391 testes no app e 131 no Go**, rodando a cada envio no GitHub;
 - o guia de desenvolvimento, com as regras do código: [`CONTRIBUINDO.md`](CONTRIBUINDO.md).
 
 ## como rodar de verdade;
@@ -108,6 +108,6 @@ cd ../app && flutter test
 ## licença;
 
 GPL-3.0 ([`LICENSE`](LICENSE)). Vem do `libsignal`, usado pelo whatsmeow, que também é GPL-3.0: quem distribuir o app precisa abrir o código sob a mesma licença.
-As fontes vão com as licenças delas: Atkinson Hyperlegible Next (OFL) e Ubuntu Sans Mono (Ubuntu Font Licence).
+As fontes vão com as licenças delas: Ubuntu Sans e Ubuntu Sans Mono (Ubuntu Font Licence).
 
 <sub>// feito pelo Garoto do Programa; · código aberto, humor duvidoso;)</sub>

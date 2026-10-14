@@ -29,8 +29,19 @@ class ProductsController extends ChangeNotifier {
   DateTime get today => _clock();
 
   Future<void> load() async {
-    all = await _repo.list();
+    final loaded = await _repo.list();
+    // The screen may be gone while the database answered (section changed).
+    if (_disposed) return;
+    all = loaded;
     notifyListeners();
+  }
+
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 
   /// Every category in use, in order.

@@ -159,98 +159,101 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Venda rápida'),
-        actions: [
-          TextButton(
-            onPressed: _saving ? null : _conclude,
-            child: const Text('Concluir'),
+      appBar: AppBar(title: const Text('Venda rápida')),
+      body: FormBody(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            16 + MediaQuery.paddingOf(context).bottom,
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          16 + MediaQuery.paddingOf(context).bottom,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 8,
-          children: [
-            MoneyField(
-              controller: _amount,
-              label: 'Valor',
-              error: _errors['amount'],
-              autofocus: true,
-            ),
-            _field(
-              'description',
-              'Descrição (opcional)',
-              _description,
-              hint: quickSaleLabel,
-            ),
-            // Wraps instead of overflowing with large text.
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 8,
-              children: [
-                Text(
-                  'Cliente: ${_client?.name ?? 'Consumidor final'}',
-                  style: _errors['client'] == null
-                      ? null
-                      : TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-                if (ctx.clients != null)
-                  TextButton(
-                    onPressed: _chooseClient,
-                    child: const Text('Escolher cliente'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            // The rhythm of every form: 16 between fields.
+            spacing: 16,
+            children: [
+              MoneyField(
+                controller: _amount,
+                label: 'Valor',
+                error: _errors['amount'],
+                autofocus: true,
+              ),
+              _field(
+                'description',
+                'Descrição (opcional)',
+                _description,
+                hint: quickSaleLabel,
+              ),
+              // Wraps instead of overflowing with large text.
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                children: [
+                  Text(
+                    'Cliente: ${_client?.name ?? 'Consumidor final'}',
+                    style: _errors['client'] == null
+                        ? null
+                        : TextStyle(color: Theme.of(context).colorScheme.error),
                   ),
-              ],
-            ),
-            if (_errors['client'] case final e?)
-              Text(
-                e,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            TextField(
-              controller: _date,
-              keyboardType: TextInputType.number,
-              inputFormatters: [Masks.date],
-              decoration: InputDecoration(
-                labelText: 'Data da venda',
-                errorText: _errors['date'],
-              ),
-            ),
-            const SizedBox(height: 8),
-            SegmentedButton<bool>(
-              segments: const [
-                ButtonSegment(value: false, label: Text('Pago agora')),
-                ButtonSegment(value: true, label: Text('Fiado')),
-              ],
-              selected: {_onCredit},
-              onSelectionChanged: (v) => setState(() => _onCredit = v.single),
-            ),
-            if (_onCredit)
-              _field('due', 'Vence em', _due, keyboard: TextInputType.datetime)
-            else
-              DropdownButtonFormField<PayMethod>(
-                initialValue: _method,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Forma'),
-                items: [
-                  for (final MapEntry(:key, :value) in payMethodLabels.entries)
-                    DropdownMenuItem(value: key, child: Text(value)),
+                  if (ctx.clients != null)
+                    TextButton(
+                      onPressed: _chooseClient,
+                      child: const Text('Escolher cliente'),
+                    ),
                 ],
-                onChanged: (m) => setState(() => _method = m!),
               ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: _saving ? null : _conclude,
-              child: const Text('Registrar venda'),
-            ),
-          ],
+              if (_errors['client'] case final e?)
+                Text(
+                  e,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              TextField(
+                controller: _date,
+                keyboardType: TextInputType.number,
+                inputFormatters: [Masks.date],
+                decoration: InputDecoration(
+                  labelText: 'Data da venda',
+                  errorText: _errors['date'],
+                ),
+              ),
+              SegmentedButton<bool>(
+                segments: const [
+                  ButtonSegment(value: false, label: Text('Pago agora')),
+                  ButtonSegment(value: true, label: Text('Fiado')),
+                ],
+                selected: {_onCredit},
+                onSelectionChanged: (v) => setState(() => _onCredit = v.single),
+              ),
+              if (_onCredit)
+                _field(
+                  'due',
+                  'Vence em',
+                  _due,
+                  keyboard: TextInputType.datetime,
+                )
+              else
+                DropdownButtonFormField<PayMethod>(
+                  initialValue: _method,
+                  isExpanded: true,
+                  decoration: const InputDecoration(labelText: 'Forma'),
+                  items: [
+                    for (final MapEntry(:key, :value)
+                        in payMethodLabels.entries)
+                      DropdownMenuItem(value: key, child: Text(value)),
+                  ],
+                  onChanged: (m) => setState(() => _method = m!),
+                ),
+              // 16 + 8: the main action sits a group apart (24).
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: FilledButton(
+                  onPressed: _saving ? null : _conclude,
+                  child: const Text('Registrar venda'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

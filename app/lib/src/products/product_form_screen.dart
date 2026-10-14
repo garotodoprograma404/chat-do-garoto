@@ -1133,225 +1133,242 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       ),
       // A column, not a lazy list: fields that come and go must not move
       // the focus to another field.
-      body: SingleChildScrollView(
-        // Content drawn behind the system navigation bar must scroll above
-        // it (edge to edge on Android).
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          24 + MediaQuery.paddingOf(context).bottom,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Only what matters on top: photo, name, price
-            // and stock.
-            if (widget.photos != null || _photos.isNotEmpty) ...[
-              _photos_(),
-              const SizedBox(height: 16),
-            ],
-            _field('name', 'Nome', _name),
-            const FormGap(),
-            _moneyField('price', 'Preço de venda', _price),
-            if (_isProduct) ...[
+      body: FormBody(
+        child: SingleChildScrollView(
+          // Content drawn behind the system navigation bar must scroll above
+          // it (edge to edge on Android).
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            24 + MediaQuery.paddingOf(context).bottom,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Only what matters on top: photo, name, price
+              // and stock.
+              if (widget.photos != null || _photos.isNotEmpty) ...[
+                _photos_(),
+                const SizedBox(height: 16),
+              ],
+              _field('name', 'Nome', _name),
               const FormGap(),
-              if (!simple)
-                Text(
-                  'O estoque fica em cada variação, em "Variações".',
-                  style: t.bodySmall,
-                )
-              else if (savedStock?.id == null)
-                _field(
-                  'stock',
-                  'Estoque ($_unit)',
-                  _initialStock,
-                  keyboard: _decimal,
-                  hint: 'quanto você tem agora',
+              if (_isProduct && simple && savedStock?.id == null)
+                FormPair(
+                  first: _moneyField('price', 'Preço de venda', _price),
+                  second: _field(
+                    'stock',
+                    'Estoque ($_unit)',
+                    _initialStock,
+                    keyboard: _decimal,
+                    hint: 'quanto você tem agora',
+                  ),
                 )
               else
-                Text(
-                  'Estoque: ${formatQuantity(savedStock!.savedStock)} $_unit '
-                  '(muda pela página do produto)',
-                  style: t.bodyMedium,
-                ),
-            ],
-            const SizedBox(height: 24),
-            Text('Mais detalhes', style: t.titleMedium),
-            Text(
-              'Tudo opcional. Toque para abrir.',
-              style: t.bodySmall!.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _group(
-              'codes',
-              'Código de barras e código interno',
-              Symbols.barcode_rounded,
-              _codesSummary,
-              [
-                _field(
-                  'barcode',
-                  'Código de barras',
-                  _barcode,
-                  keyboard: TextInputType.number,
-                  suffix: scanIntoButton(context, _barcode),
-                ),
-                _field('sku', 'Código interno (SKU)', _sku),
+                _moneyField('price', 'Preço de venda', _price),
+              if (_isProduct && !(simple && savedStock?.id == null)) ...[
+                const FormGap(),
+                if (!simple)
+                  Text(
+                    'O estoque fica em cada variação, em "Variações".',
+                    style: t.bodySmall,
+                  )
+                else
+                  Text(
+                    'Estoque: ${formatQuantity(savedStock!.savedStock)} $_unit '
+                    '(muda pela página do produto)',
+                    style: t.bodyMedium,
+                  ),
               ],
-            ),
-            _group(
-              'cost',
-              'Custo e lucro',
-              Symbols.calculate_rounded,
-              _costSummary,
-              [
-                _moneyField(
-                  'cost',
-                  simple || !_isProduct
-                      ? 'Preço de custo'
-                      : 'Preço de custo (das variações novas)',
-                  _cost,
-                ),
-                if (profit != null) Text(profit),
-              ],
-            ),
-            _group('promo', 'Promoção', Symbols.sell_rounded, _promoSummary, [
-              _moneyField('promoPrice', 'Preço promocional', _promoPrice),
-              _date(
-                'promoUntil',
-                'Promoção até',
-                _promoUntil,
-                'dd/mm/aaaa (em branco: sem data)',
-              ),
-            ]),
-            _group('tiers', 'Atacado', Symbols.stacks_rounded, _tiersSummary, [
+              const SizedBox(height: 24),
+              Text('Mais detalhes', style: t.titleMedium),
               Text(
-                'Preço menor a partir de uma quantidade.',
-                style: t.bodySmall,
+                'Tudo opcional. Toque para abrir.',
+                style: t.bodySmall!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-              for (final (i, tier) in _tiers.take(_tierRows).indexed)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _field(
-                        'tierQty$i',
-                        'A partir de ($_unit)',
-                        tier.qty,
-                        keyboard: _decimal,
+              const SizedBox(height: 8),
+              _group(
+                'codes',
+                'Código de barras e código interno',
+                Symbols.barcode_rounded,
+                _codesSummary,
+                [
+                  _field(
+                    'barcode',
+                    'Código de barras',
+                    _barcode,
+                    keyboard: TextInputType.number,
+                    suffix: scanIntoButton(context, _barcode),
+                  ),
+                  _field('sku', 'Código interno (SKU)', _sku),
+                ],
+              ),
+              _group(
+                'cost',
+                'Custo e lucro',
+                Symbols.calculate_rounded,
+                _costSummary,
+                [
+                  _moneyField(
+                    'cost',
+                    simple || !_isProduct
+                        ? 'Preço de custo'
+                        : 'Preço de custo (das variações novas)',
+                    _cost,
+                  ),
+                  if (profit != null) Text(profit),
+                ],
+              ),
+              _group('promo', 'Promoção', Symbols.sell_rounded, _promoSummary, [
+                _moneyField('promoPrice', 'Preço promocional', _promoPrice),
+                _date(
+                  'promoUntil',
+                  'Promoção até',
+                  _promoUntil,
+                  'dd/mm/aaaa (em branco: sem data)',
+                ),
+              ]),
+              _group(
+                'tiers',
+                'Atacado',
+                Symbols.stacks_rounded,
+                _tiersSummary,
+                [
+                  Text(
+                    'Preço menor a partir de uma quantidade.',
+                    style: t.bodySmall,
+                  ),
+                  for (final (i, tier) in _tiers.take(_tierRows).indexed)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _field(
+                            'tierQty$i',
+                            'A partir de ($_unit)',
+                            tier.qty,
+                            keyboard: _decimal,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _moneyField(
+                            'tierPrice$i',
+                            'Preço',
+                            tier.price,
+                          ),
+                        ),
+                      ],
+                    ),
+                  if (_tierRows < _tiers.length)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () => setState(() => _tierRows++),
+                        icon: const Icon(Symbols.add_rounded),
+                        label: const Text('Adicionar faixa'),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _moneyField('tierPrice$i', 'Preço', tier.price),
+                ],
+              ),
+              if (_isProduct)
+                _group(
+                  'stock',
+                  'Estoque e validade',
+                  Symbols.inventory_2_rounded,
+                  _stockSummary,
+                  [
+                    DropdownButtonFormField<String>(
+                      initialValue: _unit,
+                      isExpanded: true,
+                      decoration: const InputDecoration(labelText: 'Unidade'),
+                      items: [
+                        for (final u in units)
+                          DropdownMenuItem(value: u, child: Text(u)),
+                      ],
+                      onChanged: (u) => setState(() => _unit = u!),
+                    ),
+                    _field(
+                      'minStock',
+                      'Estoque mínimo ($_unit)',
+                      _minStock,
+                      keyboard: _decimal,
+                      hint: 'avisa quando chegar nele',
+                    ),
+                    // The current batch's.
+                    _date(
+                      'expiresOn',
+                      'Validade',
+                      _expiresOn,
+                      'dd/mm/aaaa (em branco: não se aplica)',
                     ),
                   ],
                 ),
-              if (_tierRows < _tiers.length)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => setState(() => _tierRows++),
-                    icon: const Icon(Symbols.add_rounded),
-                    label: const Text('Adicionar faixa'),
-                  ),
+              if (_isProduct)
+                _group(
+                  'variants',
+                  'Variações (tamanho, cor…)',
+                  Symbols.style_rounded,
+                  _variantsSummary,
+                  _variations(),
                 ),
-            ]),
-            if (_isProduct)
               _group(
-                'stock',
-                'Estoque e validade',
-                Symbols.inventory_2_rounded,
-                _stockSummary,
+                'organization',
+                'Categoria, marca e descrição',
+                Symbols.folder_rounded,
+                _organizationSummary,
                 [
-                  DropdownButtonFormField<String>(
-                    initialValue: _unit,
-                    isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Unidade'),
-                    items: [
-                      for (final u in units)
-                        DropdownMenuItem(value: u, child: Text(u)),
-                    ],
-                    onChanged: (u) => setState(() => _unit = u!),
-                  ),
-                  _field(
-                    'minStock',
-                    'Estoque mínimo ($_unit)',
-                    _minStock,
-                    keyboard: _decimal,
-                    hint: 'avisa quando chegar nele',
-                  ),
-                  // The current batch's.
-                  _date(
-                    'expiresOn',
-                    'Validade',
-                    _expiresOn,
-                    'dd/mm/aaaa (em branco: não se aplica)',
-                  ),
+                  _suggested('category', 'Categoria', _category, _categories),
+                  _suggested('brand', 'Marca', _brand, _brands),
+                  _suggested('supplier', 'Fornecedor', _supplier, _suppliers),
+                  _field('description', 'Descrição', _description, maxLines: 3),
                 ],
               ),
-            if (_isProduct)
-              _group(
-                'variants',
-                'Variações (tamanho, cor…)',
-                Symbols.style_rounded,
-                _variantsSummary,
-                _variations(),
-              ),
-            _group(
-              'organization',
-              'Categoria, marca e descrição',
-              Symbols.folder_rounded,
-              _organizationSummary,
-              [
-                _suggested('category', 'Categoria', _category, _categories),
-                _suggested('brand', 'Marca', _brand, _brands),
-                _suggested('supplier', 'Fornecedor', _supplier, _suppliers),
-                _field('description', 'Descrição', _description, maxLines: 3),
-              ],
-            ),
-            if (!editing)
-              _group(
-                'kind',
-                'Produto ou serviço',
-                Symbols.category_rounded,
-                _isProduct ? 'Produto' : 'Serviço (sem estoque)',
-                [
-                  SegmentedButton<ProductKind>(
-                    segments: const [
-                      ButtonSegment(
-                        value: ProductKind.product,
-                        label: Text('Produto'),
-                      ),
-                      ButtonSegment(
-                        value: ProductKind.service,
-                        label: Text('Serviço'),
-                      ),
-                    ],
-                    selected: {_kind},
-                    onSelectionChanged: (s) => setState(() => _kind = s.single),
-                  ),
-                ],
-              )
-            else
-              _group(
-                'active',
-                'Situação',
-                Symbols.toggle_on_rounded,
-                _active ? 'Ativo' : 'Inativo (não aparece na venda)',
-                [
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Ativo'),
-                    subtitle: const Text('Inativo não aparece na venda.'),
-                    value: _active,
-                    onChanged: (v) => setState(() => _active = v),
-                  ),
-                ],
-              ),
-          ],
+              if (!editing)
+                _group(
+                  'kind',
+                  'Produto ou serviço',
+                  Symbols.category_rounded,
+                  _isProduct ? 'Produto' : 'Serviço (sem estoque)',
+                  [
+                    SegmentedButton<ProductKind>(
+                      segments: const [
+                        ButtonSegment(
+                          value: ProductKind.product,
+                          label: Text('Produto'),
+                        ),
+                        ButtonSegment(
+                          value: ProductKind.service,
+                          label: Text('Serviço'),
+                        ),
+                      ],
+                      selected: {_kind},
+                      onSelectionChanged: (s) =>
+                          setState(() => _kind = s.single),
+                    ),
+                  ],
+                )
+              else
+                _group(
+                  'active',
+                  'Situação',
+                  Symbols.toggle_on_rounded,
+                  _active ? 'Ativo' : 'Inativo (não aparece na venda)',
+                  [
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Ativo'),
+                      subtitle: const Text('Inativo não aparece na venda.'),
+                      value: _active,
+                      onChanged: (v) => setState(() => _active = v),
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );

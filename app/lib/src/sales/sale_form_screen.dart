@@ -764,6 +764,7 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
         if (_client == null)
           Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
             children: [
               _muted('Fiado precisa de um cliente.'),
               if (ctx.clients != null)
@@ -996,110 +997,104 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
         if (context.mounted) Navigator.pop(context);
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Nova venda'),
-          actions: [
-            TextButton(
-              onPressed: _saving ? null : _conclude,
-              child: const Text('Concluir'),
-            ),
-          ],
-        ),
-        // The items and the total always in sight; the
-        // "Concluir" on top stays where it was.
+        appBar: AppBar(title: const Text('Nova venda')),
+        // The items and the total always in sight, with "Concluir".
         bottomNavigationBar: _TotalBar(
           items: _items.length,
           total: _total,
           onConclude: _saving ? null : _conclude,
         ),
         // A column, not a lazy list: rows come and go while typing.
-        body: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            8,
-            16,
-            16 + MediaQuery.paddingOf(context).bottom,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Only the amount? The quick sale.
-              if (_items.isEmpty)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => Navigator.of(context).pushReplacement(
-                      MaterialPageRoute<void>(
-                        builder: (_) =>
-                            QuickSaleScreen(ctx: ctx, client: _client),
+        body: FormBody(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              8,
+              16,
+              16 + MediaQuery.paddingOf(context).bottom,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Only the amount? The quick sale.
+                if (_items.isEmpty)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () => Navigator.of(context).pushReplacement(
+                        MaterialPageRoute<void>(
+                          builder: (_) =>
+                              QuickSaleScreen(ctx: ctx, client: _client),
+                        ),
                       ),
+                      icon: const Icon(Symbols.bolt_rounded),
+                      label: const Text('Só o valor? Venda rápida'),
                     ),
-                    icon: const Icon(Symbols.bolt_rounded),
-                    label: const Text('Só o valor? Venda rápida'),
                   ),
+                // Wraps instead of overflowing with large text.
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 12,
+                  children: [
+                    Text('Cliente: ${_client?.name ?? 'Consumidor final'}'),
+                    if (ctx.clients != null)
+                      TextButton(
+                        onPressed: _chooseClient,
+                        child: const Text('Escolher cliente'),
+                      ),
+                    if (_client != null)
+                      IconButton(
+                        tooltip: 'Tirar cliente',
+                        icon: const Icon(Symbols.close_rounded),
+                        onPressed: () => setState(() => _client = null),
+                      ),
+                  ],
                 ),
-              // Wraps instead of overflowing with large text.
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text('Cliente: ${_client?.name ?? 'Consumidor final'}'),
-                  if (ctx.clients != null)
-                    TextButton(
-                      onPressed: _chooseClient,
-                      child: const Text('Escolher cliente'),
-                    ),
-                  if (_client != null)
-                    IconButton(
-                      tooltip: 'Tirar cliente',
-                      icon: const Icon(Symbols.close_rounded),
-                      onPressed: () => setState(() => _client = null),
-                    ),
-                ],
-              ),
-              _error('client'),
-              const SizedBox(height: 8),
-              Text('Itens', style: title),
-              const SizedBox(height: 4),
-              for (final (n, i) in _items.indexed)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: _item(n, i),
-                ),
-              _error('items'),
-              Wrap(
-                spacing: 8,
-                children: [
-                  TextButton.icon(
-                    onPressed: _addItem,
-                    icon: const Icon(Symbols.add_rounded),
-                    label: const Text('Adicionar item'),
+                _error('client'),
+                const SizedBox(height: 8),
+                Text('Itens', style: title),
+                const SizedBox(height: 4),
+                for (final (n, i) in _items.indexed)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _item(n, i),
                   ),
-                  if (barcodeScanner != null)
+                _error('items'),
+                Wrap(
+                  spacing: 8,
+                  children: [
                     TextButton.icon(
-                      onPressed: _scanItems,
-                      icon: const Icon(Symbols.barcode_scanner_rounded),
-                      label: const Text('Ler código'),
+                      onPressed: _addItem,
+                      icon: const Icon(Symbols.add_rounded),
+                      label: const Text('Adicionar item'),
                     ),
-                ],
-              ),
-              if (_items.isNotEmpty)
-                _muted(
-                  [
-                    'Itens ${formatMoney(_itemsTotal)}',
-                    if (_saleDiscount > 0)
-                      'desconto ${formatMoney(_saleDiscount)}',
-                    if (_freightValue > 0)
-                      'frete ${formatMoney(_freightValue)}',
-                    'lucro ${formatMoney(_itemsTotal - _saleDiscount - _cost)}',
-                  ].join(' · '),
+                    if (barcodeScanner != null)
+                      TextButton.icon(
+                        onPressed: _scanItems,
+                        icon: const Icon(Symbols.barcode_scanner_rounded),
+                        label: const Text('Ler código'),
+                      ),
+                  ],
                 ),
-              const SizedBox(height: 16),
-              Text('Como vai pagar?', style: title),
-              const SizedBox(height: 8),
-              if (_split) ..._divided() else ..._payChoice(),
-              const SizedBox(height: 8),
-              _details(),
-            ],
+                if (_items.isNotEmpty)
+                  _muted(
+                    [
+                      'Itens ${formatMoney(_itemsTotal)}',
+                      if (_saleDiscount > 0)
+                        'desconto ${formatMoney(_saleDiscount)}',
+                      if (_freightValue > 0)
+                        'frete ${formatMoney(_freightValue)}',
+                      'lucro ${formatMoney(_itemsTotal - _saleDiscount - _cost)}',
+                    ].join(' · '),
+                  ),
+                const SizedBox(height: 16),
+                Text('Como vai pagar?', style: title),
+                const SizedBox(height: 8),
+                if (_split) ..._divided() else ..._payChoice(),
+                const SizedBox(height: 8),
+                _details(),
+              ],
+            ),
           ),
         ),
       ),

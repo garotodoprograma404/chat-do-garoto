@@ -37,6 +37,7 @@ import 'src/storage/key_vault.dart';
 import 'src/storage/recovery_screen.dart';
 import 'src/storage/storage_controller.dart';
 import 'src/theme/app_theme.dart';
+import 'src/theme/responsive.dart';
 import 'src/theme/theme_controller.dart';
 import 'src/prototype/prototype_screen.dart';
 import 'src/settings/settings_screen.dart';
@@ -154,11 +155,11 @@ class _RootState extends State<_Root> {
   }
 }
 
-/// The bundled fonts' licenses (OFL and UFL) in the app's license page.
+/// The bundled fonts' licenses (UFL) in the app's license page.
 void _registerFontLicenses() {
   LicenseRegistry.addLicense(() async* {
     for (final (family, file) in [
-      ('Atkinson Hyperlegible Next', 'OFL-AtkinsonHyperlegibleNext.txt'),
+      ('Ubuntu Sans', 'UFL-UbuntuSansMono.txt'),
       ('Ubuntu Sans Mono', 'UFL-UbuntuSansMono.txt'),
     ]) {
       final text = await rootBundle.loadString('assets/fonts/$file');
@@ -289,6 +290,7 @@ class _ChatDoGarotoAppState extends State<ChatDoGarotoApp> {
       listenable: widget.theme,
       builder: (context, _) => MaterialApp(
         title: 'Chat do Garoto',
+        scrollBehavior: const AppScrollBehavior(),
         navigatorKey: _navigator,
         theme: _light,
         darkTheme: _dark,

@@ -16,6 +16,7 @@ import 'client_hint.dart';
 import 'client_screen.dart';
 import 'clients_controller.dart';
 import 'clients_repository.dart';
+import '../theme/responsive.dart';
 
 /// All clients, by name, and "Novo cliente".
 class ClientsScreen extends StatefulWidget {
@@ -195,37 +196,33 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 hint: 'Buscar clientes',
                 onChanged: _controller.search,
               ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
+              FilterBar(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  spacing: 8,
-                  children: [
-                    if (_sales != null) ...[
-                      FilterChip(
-                        label: const Text('Devendo'),
-                        selected: _controller.owingOnly,
-                        onSelected: (_) => _controller.toggleOwing(),
-                      ),
-                      FilterChip(
-                        label: const Text('Sumidos'),
-                        selected: _controller.goneOnly,
-                        onSelected: (_) => _controller.toggleGone(),
-                      ),
-                    ],
+                children: [
+                  if (_sales != null) ...[
                     FilterChip(
-                      label: const Text('Aniversariantes do mês'),
-                      selected: _controller.birthdaysThisMonth,
-                      onSelected: (_) => _controller.toggleBirthdays(),
+                      label: const Text('Devendo'),
+                      selected: _controller.owingOnly,
+                      onSelected: (_) => _controller.toggleOwing(),
                     ),
-                    for (final tag in _controller.allTags)
-                      FilterChip(
-                        label: Text(tag),
-                        selected: _controller.tags.contains(tag),
-                        onSelected: (_) => _controller.toggleTag(tag),
-                      ),
+                    FilterChip(
+                      label: const Text('Sumidos'),
+                      selected: _controller.goneOnly,
+                      onSelected: (_) => _controller.toggleGone(),
+                    ),
                   ],
-                ),
+                  FilterChip(
+                    label: const Text('Aniversariantes do mês'),
+                    selected: _controller.birthdaysThisMonth,
+                    onSelected: (_) => _controller.toggleBirthdays(),
+                  ),
+                  for (final tag in _controller.allTags)
+                    FilterChip(
+                      label: Text(tag),
+                      selected: _controller.tags.contains(tag),
+                      onSelected: (_) => _controller.toggleTag(tag),
+                    ),
+                ],
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),

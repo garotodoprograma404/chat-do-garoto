@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../theme/responsive.dart';
 import '../clients/clients_repository.dart';
 import '../core_bridge/core_bridge.dart';
 import '../products/money.dart';
@@ -286,43 +287,39 @@ class _Filters extends StatelessWidget {
     final c = controller;
     final colors = Theme.of(context).colorScheme;
     final chosen = c.period != SalePeriod.all;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    return FilterBar(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Row(
-        spacing: 8,
-        children: [
-          PopupMenuButton<SalePeriod>(
-            tooltip: 'Período',
-            onSelected: c.setPeriod,
-            itemBuilder: (context) => [
-              for (final MapEntry(:key, :value) in salePeriodLabels.entries)
-                CheckedPopupMenuItem(
-                  value: key,
-                  checked: c.period == key,
-                  child: Text(value),
-                ),
-            ],
-            child: Chip(
-              backgroundColor: chosen ? colors.secondaryContainer : null,
-              avatar: const Icon(Symbols.calendar_month_rounded, size: 18),
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(salePeriodLabels[c.period]!),
-                  const Icon(Symbols.arrow_drop_down_rounded, size: 20),
-                ],
+      children: [
+        PopupMenuButton<SalePeriod>(
+          tooltip: 'Período',
+          onSelected: c.setPeriod,
+          itemBuilder: (context) => [
+            for (final MapEntry(:key, :value) in salePeriodLabels.entries)
+              CheckedPopupMenuItem(
+                value: key,
+                checked: c.period == key,
+                child: Text(value),
               ),
+          ],
+          child: Chip(
+            backgroundColor: chosen ? colors.secondaryContainer : null,
+            avatar: const Icon(Symbols.calendar_month_rounded, size: 18),
+            label: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(salePeriodLabels[c.period]!),
+                const Icon(Symbols.arrow_drop_down_rounded, size: 20),
+              ],
             ),
           ),
-          for (final MapEntry(:key, :value) in saleStatusLabels.entries)
-            FilterChip(
-              label: Text(value),
-              selected: c.statuses.contains(key),
-              onSelected: (_) => c.toggleStatus(key),
-            ),
-        ],
-      ),
+        ),
+        for (final MapEntry(:key, :value) in saleStatusLabels.entries)
+          FilterChip(
+            label: Text(value),
+            selected: c.statuses.contains(key),
+            onSelected: (_) => c.toggleStatus(key),
+          ),
+      ],
     );
   }
 }
