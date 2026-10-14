@@ -1,0 +1,10 @@
+/* What libchatcore exports: only the bridge. The SQLite
+   compiled into the Go core stays private, so it never mixes with the
+   SQLCipher library the Dart side loads in the same process. */
+{
+  global:
+    cc_*;
+    Java_*;
+  local:
+    *;
+};

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the "abrir com" copies, deleted when the app shows again. -->
+<paths>
+    <cache-path name="open" path="open/" />
+</paths>

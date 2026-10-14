@@ -1,0 +1,50 @@
+# --- Dados sensíveis: NUNCA versionar ---
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+key.properties
+.env
+.env.*
+*.backup
+*.bak
+/backups/
+
+
+# --- Flutter / Dart ---
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+*.iml
+.idea/
+coverage/
+
+# --- Android ---
+local.properties
+.gradle/
+.cxx/
+captures/
+*.apk
+*.aab
+
+# --- Go / bibliotecas nativas geradas ---
+*.so
+*.dylib
+*.dll
+*.a
+*.test
+*.out
+
+# --- Sistema ---
+.DS_Store
+Thumbs.db
+*.swp
