@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../demo/demo_app.dart';
 import '../theme/brand_mark.dart';
 
 /// How the screens are shown.
@@ -79,10 +80,11 @@ class _IntroScreenState extends State<IntroScreen> {
                   controller: _pages,
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
-                    const _Page(
+                    _Page(
                       first: true,
+                      demo: !_reading,
                       title: 'O que o app protege',
-                      points: [
+                      points: const [
                         'Seus clientes, vendas e conversas ficam guardados só '
                             'neste celular, embaralhados (cifrados). Não existe '
                             'servidor nosso.',
@@ -183,6 +185,7 @@ class _Page extends StatelessWidget {
     required this.points,
     this.extra,
     this.first = false,
+    this.demo = false,
   });
 
   final String title;
@@ -192,6 +195,9 @@ class _Page extends StatelessWidget {
   /// The first page opens with the Garoto's face and the app's name.
   final bool first;
 
+  /// The first page also offers the demo.
+  final bool demo;
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -199,6 +205,10 @@ class _Page extends StatelessWidget {
       children: [
         if (first) ...[
           const Center(child: BrandLockup(size: 72, vertical: true)),
+          if (demo) ...[
+            const SizedBox(height: 16),
+            const Center(child: DemoButton()),
+          ],
           const SizedBox(height: 28),
         ],
         SemicolonText(title, style: Theme.of(context).textTheme.headlineSmall),

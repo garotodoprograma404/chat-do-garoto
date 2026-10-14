@@ -17,6 +17,7 @@ import 'src/chats/media/media_picker.dart';
 import 'src/clients/clients_repository.dart';
 import 'src/clients/contact_picker.dart';
 import 'src/core_bridge/core_bridge.dart';
+import 'src/demo/demo_app.dart';
 import 'src/home/crm_scope.dart';
 import 'src/home/home_shell.dart';
 import 'src/intro/intro_controller.dart';
@@ -90,17 +91,67 @@ Future<void> main() async {
     (_) => whatsapp.start().then((_) => chats.start()),
   );
   runApp(
-    ChatDoGarotoApp(
-      bridge: bridge,
-      lock: lock,
-      storage: storage,
-      whatsapp: whatsapp,
-      chats: chats,
-      backup: backup,
-      intro: intro,
+    _Root(
       theme: theme,
+      real: ChatDoGarotoApp(
+        bridge: bridge,
+        lock: lock,
+        storage: storage,
+        whatsapp: whatsapp,
+        chats: chats,
+        backup: backup,
+        intro: intro,
+        theme: theme,
+      ),
     ),
   );
+}
+
+/// Shows the real app, or the demo when someone asks for it.
+/// The real app's controllers stay alive while the demo runs; the demo
+/// never touches them.
+class _Root extends StatefulWidget {
+  const _Root({required this.theme, required this.real});
+
+  final ThemeController theme;
+  final Widget real;
+
+  @override
+  State<_Root> createState() => _RootState();
+}
+
+class _RootState extends State<_Root> {
+  DemoSession? _demo;
+  bool _opening = false;
+
+  // The demo starts with the app's look; a change made there stays there.
+  late final _demoTheme = ThemeController(
+    store: MemoryKeyVault(widget.theme.mode.name),
+  )..load();
+
+  Future<void> _enter() async {
+    if (_opening || _demo != null) return;
+    _opening = true;
+    final session = await DemoSession.open();
+    _opening = false;
+    if (!mounted) return session.close();
+    setState(() => _demo = session);
+  }
+
+  Future<void> _exit() async {
+    final session = _demo;
+    if (session == null) return;
+    setState(() => _demo = null);
+    await session.close();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_demo case final session?) {
+      return DemoApp(session: session, theme: _demoTheme, onExit: _exit);
+    }
+    return DemoLauncher(enter: _enter, child: widget.real);
+  }
 }
 
 /// The bundled fonts' licenses (OFL and UFL) in the app's license page.

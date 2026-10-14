@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'lock_controller.dart';
 import 'pin_field.dart';
+import '../demo/demo_app.dart';
 import '../theme/brand_mark.dart';
 
 /// The app is locked: only the PIN, biometrics and "forgot the PIN"; no
@@ -87,6 +88,9 @@ class _LockScreenState extends State<LockScreen> {
                 onPressed: _forgot,
                 child: const Text('Esqueci o PIN'),
               ),
+              // Show the app to someone without opening my data.
+              const SizedBox(height: 24),
+              const Center(child: DemoButton()),
             ],
           ),
         ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../demo/demo_app.dart';
 import '../settings/settings_menu.dart';
 import 'whatsapp_controller.dart';
 import '../theme/brand_mark.dart';
@@ -192,6 +193,9 @@ class _PairingState extends State<_Pairing> {
           ..._code(context, controller)
         else
           ..._qr(controller),
+        // Or look around first, with invented data.
+        const SizedBox(height: 24),
+        const Center(child: DemoButton()),
       ],
     );
   }

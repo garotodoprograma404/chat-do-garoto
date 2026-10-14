@@ -142,6 +142,9 @@ void main() {
   });
 
   testWidgets('the text of my bubble uses its own color', (tester) async {
+    // The bubble shows the hour only for messages of the real today.
+    final now = DateTime.now();
+    final tenToday = DateTime(now.year, now.month, now.day, 10);
     await _pump(
       tester,
       Scaffold(
@@ -153,7 +156,7 @@ void main() {
             senderName: '',
             kind: 'text',
             text: 'Tenho sim!',
-            ts: _today.millisecondsSinceEpoch,
+            ts: tenToday.millisecondsSinceEpoch,
             status: 'read',
           ),
           showSender: false,
