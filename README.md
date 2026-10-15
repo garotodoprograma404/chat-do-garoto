@@ -68,7 +68,7 @@ O app funciona enquanto o WhatsApp oficial do seu celular for aberto pelo menos 
 Nada de criptografia inventada: só biblioteca reconhecida. (0019)
 
 **Feito com processo, do jeito que time sério faz:**
-- **394 testes no app e 131 no Go**, rodando a cada envio no GitHub;
+- **400 testes no app e 131 no Go**, rodando a cada envio no GitHub;
 - o guia de desenvolvimento, com as regras do código: [`CONTRIBUINDO.md`](CONTRIBUINDO.md).
 
 ## como rodar de verdade;

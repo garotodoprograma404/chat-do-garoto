@@ -326,32 +326,53 @@ class _ClientScreenState extends State<ClientScreen> {
                   padding: padding,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 16,
                     children: [
-                      header,
-                      const SizedBox(height: 16),
-                      ..._top(context, client),
-                      const Divider(height: 32),
+                      // Who it is and what to do: one card.
+                      AppCard(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            header,
+                            const SizedBox(height: 16),
+                            ..._top(context, client),
+                          ],
+                        ),
+                      ),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 16,
                         children: [
                           Expanded(
                             flex: 6,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: _timeline(context),
+                            child: AppCard(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: _timeline(context),
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 24),
                           Expanded(
                             flex: 5,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
+                              spacing: 16,
                               children: [
-                                ...data,
-                                if (whatsapp != null) ...[
-                                  const Divider(height: 32),
-                                  whatsapp,
-                                ],
+                                AppCard(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: data,
+                                  ),
+                                ),
+                                if (whatsapp != null)
+                                  AppCard(
+                                    padding: const EdgeInsets.all(16),
+                                    child: whatsapp,
+                                  ),
                               ],
                             ),
                           ),

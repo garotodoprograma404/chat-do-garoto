@@ -220,26 +220,23 @@ class _StartScreenState extends State<StartScreen> {
           final month = _Month(controller: _c);
           return LayoutBuilder(
             builder: (context, box) {
-              // A wide window: what to do today on the left, the shortcuts
-              // and the month on the right.
+              // A wide window: a panel of cards.
               if (box.maxWidth >= 900) {
                 return SingleChildScrollView(
-                  padding: EdgeInsets.only(bottom: bottom),
-                  child: ContentWidth(
-                    maxWidth: 1400,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(flex: 6, child: today),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          flex: 5,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [shortcuts, month],
-                          ),
-                        ),
-                      ],
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, bottom),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 2200),
+                      child: _Dashboard(
+                        controller: _c,
+                        open: _open,
+                        saleCtx: _saleCtx,
+                        widget: widget,
+                        onSale: _saleCtx?.products == null ? null : _newSale,
+                        onClient: widget.clients == null ? null : _newClient,
+                        onProduct: widget.products == null ? null : _newProduct,
+                      ),
                     ),
                   ),
                 );
@@ -318,14 +315,24 @@ class _Shortcuts extends StatelessWidget {
   }
 }
 
-/// The "Hoje" block: due and overdue, birthdays, low stock.
+/// What "Hoje" is made of; the wide panel shows each part in its own card.
+enum _Part { receivables, birthdays, waiting, stock }
+
+/// The "Hoje" block: due and overdue, birthdays, low stock. With [parts]
+/// narrowed and [bare] set, it draws only those rows, without the inner
+/// headings, for a card that has its own title.
 class _Today extends StatelessWidget {
   const _Today({
     required this.controller,
     required this.open,
     required this.saleCtx,
     required this.widget,
+    this.parts = const {..._Part.values},
+    this.bare = false,
   });
+
+  final Set<_Part> parts;
+  final bool bare;
 
   final StartController controller;
   final Future<void> Function(Widget) open;
@@ -348,8 +355,8 @@ class _Today extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader('Hoje'),
-        if (nothing)
+        if (!bare) const SectionHeader('Hoje'),
+        if (nothing && !bare)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
@@ -359,22 +366,25 @@ class _Today extends StatelessWidget {
               style: t.bodyMedium!.copyWith(color: scheme.onSurfaceVariant),
             ),
           ),
-        if (c.receivables.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-            child: Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: 12,
-              children: [
-                Text(
-                  'A receber até hoje',
-                  style: t.bodyMedium!.copyWith(color: scheme.onSurfaceVariant),
-                ),
-                MoneyText(formatMoney(c.receivableTotal), small: true),
-              ],
+        if (parts.contains(_Part.receivables) && c.receivables.isNotEmpty) ...[
+          if (!bare)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: 12,
+                children: [
+                  Text(
+                    'A receber até hoje',
+                    style: t.bodyMedium!.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  MoneyText(formatMoney(c.receivableTotal), small: true),
+                ],
+              ),
             ),
-          ),
           for (final r in c.receivables.take(5))
             AppListTile(
               leading: InitialsAvatar(r.sale.clientLabel),
@@ -413,79 +423,82 @@ class _Today extends StatelessWidget {
               ),
             ),
         ],
-        for (final b in c.birthdays)
-          AppListTile(
-            leading: InitialsAvatar(b.client.name),
-            title: Text(
-              b.client.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              b.inDays == 0
-                  ? 'Faz aniversário hoje'
-                  : 'Aniversário ${inDaysLabel(b.inDays).toLowerCase()}',
-            ),
-            trailing: const Icon(Symbols.cake_rounded),
-            onTap: widget.clients == null || b.client.id == null
-                ? null
-                : () => open(
-                    ClientScreen(
-                      repo: widget.clients!,
-                      id: b.client.id!,
-                      bridge: widget.bridge,
+        if (parts.contains(_Part.birthdays))
+          for (final b in c.birthdays)
+            AppListTile(
+              leading: InitialsAvatar(b.client.name),
+              title: Text(
+                b.client.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                b.inDays == 0
+                    ? 'Faz aniversário hoje'
+                    : 'Aniversário ${inDaysLabel(b.inDays).toLowerCase()}',
+              ),
+              trailing: const Icon(Symbols.cake_rounded),
+              onTap: widget.clients == null || b.client.id == null
+                  ? null
+                  : () => open(
+                      ClientScreen(
+                        repo: widget.clients!,
+                        id: b.client.id!,
+                        bridge: widget.bridge,
+                      ),
                     ),
-                  ),
-          ),
-        if (c.waiting.isNotEmpty) ..._waiting(context),
+            ),
+        if (parts.contains(_Part.waiting) && c.waiting.isNotEmpty)
+          ..._waiting(context, heading: !bare),
         // One row per product, its situations together.
-        for (final a in c.productAlerts.take(5))
-          AppListTile(
-            leading: widget.products == null
-                ? null
-                : ProductAvatar(product: a.product, repo: widget.products!),
-            title: Text(
-              a.product.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              [
-                if (a.expiry) expiryLabel(a.product, today)!,
-                if (a.stock)
-                  a.product.outOfStock
-                      ? 'Sem estoque'
-                      : '${formatQuantity(a.product.stock)} ${a.product.unit} '
-                            'em estoque',
-              ].join(' · '),
-            ),
-            trailing: Wrap(
-              alignment: WrapAlignment.end,
-              spacing: 4,
-              runSpacing: 4,
-              children: [
-                if (a.expiry)
-                  a.product.expiresIn(today)! < 0
-                      ? const StatusPill('Vencido', Situation.overdue)
-                      : const StatusPill('Vencendo', Situation.open),
-                if (a.stock)
-                  a.product.outOfStock
-                      ? const StatusPill('Sem estoque', Situation.overdue)
-                      : const StatusPill('Estoque baixo', Situation.open),
-              ],
-            ),
-            onTap: widget.products == null || a.product.id == null
-                ? null
-                : () => open(
-                    ProductScreen(
-                      repo: widget.products!,
-                      id: a.product.id!,
-                      photos: widget.photos,
-                      clock: widget.clock,
+        if (parts.contains(_Part.stock))
+          for (final a in c.productAlerts.take(5))
+            AppListTile(
+              leading: widget.products == null
+                  ? null
+                  : ProductAvatar(product: a.product, repo: widget.products!),
+              title: Text(
+                a.product.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                [
+                  if (a.expiry) expiryLabel(a.product, today)!,
+                  if (a.stock)
+                    a.product.outOfStock
+                        ? 'Sem estoque'
+                        : '${formatQuantity(a.product.stock)} ${a.product.unit} '
+                              'em estoque',
+                ].join(' · '),
+              ),
+              trailing: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 4,
+                runSpacing: 4,
+                children: [
+                  if (a.expiry)
+                    a.product.expiresIn(today)! < 0
+                        ? const StatusPill('Vencido', Situation.overdue)
+                        : const StatusPill('Vencendo', Situation.open),
+                  if (a.stock)
+                    a.product.outOfStock
+                        ? const StatusPill('Sem estoque', Situation.overdue)
+                        : const StatusPill('Estoque baixo', Situation.open),
+                ],
+              ),
+              onTap: widget.products == null || a.product.id == null
+                  ? null
+                  : () => open(
+                      ProductScreen(
+                        repo: widget.products!,
+                        id: a.product.id!,
+                        photos: widget.photos,
+                        clock: widget.clock,
+                      ),
                     ),
-                  ),
-          ),
-        if (c.productAlerts.length > 5)
+            ),
+        if (parts.contains(_Part.stock) && c.productAlerts.length > 5)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
@@ -499,20 +512,21 @@ class _Today extends StatelessWidget {
 
   /// "Conversas sem resposta": how many, and the ones
   /// waiting longest.
-  List<Widget> _waiting(BuildContext context) {
+  List<Widget> _waiting(BuildContext context, {bool heading = true}) {
     final c = controller;
     final t = Theme.of(context).textTheme;
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;
     final bridge = widget.bridge;
     final n = c.waiting.length;
     return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-        child: Text(
-          '${plural(n, 'conversa', 'conversas')} sem resposta',
-          style: t.bodyMedium!.copyWith(color: muted),
+      if (heading)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Text(
+            '${plural(n, 'conversa', 'conversas')} sem resposta',
+            style: t.bodyMedium!.copyWith(color: muted),
+          ),
         ),
-      ),
       for (final chat in c.waiting.take(StartController.waitingShown))
         if ((c.waitingClients[chat.jid]?.name, chatTitle(chat)) case (
           final client,
@@ -666,6 +680,254 @@ class _Month extends StatelessWidget {
               style: t.bodyMedium!.copyWith(color: scheme.onSurfaceVariant),
             ),
           ),
+      ],
+    );
+  }
+}
+
+/// The Início of a wide window: the month's numbers in cards on
+/// top, then what needs attention, each subject in its own card.
+class _Dashboard extends StatelessWidget {
+  const _Dashboard({
+    required this.controller,
+    required this.open,
+    required this.saleCtx,
+    required this.widget,
+    required this.onSale,
+    required this.onClient,
+    required this.onProduct,
+  });
+
+  final StartController controller;
+  final Future<void> Function(Widget) open;
+  final SaleContext? saleCtx;
+  final StartScreen widget;
+  final VoidCallback? onSale;
+  final VoidCallback? onClient;
+  final VoidCallback? onProduct;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = controller;
+    final n = c.numbers;
+    final t = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final muted = t.bodyMedium!.copyWith(color: scheme.onSurfaceVariant);
+    final ticket = n.count == 0 ? 0 : n.revenue ~/ n.count;
+
+    Widget today(Set<_Part> parts) => _Today(
+      controller: c,
+      open: open,
+      saleCtx: saleCtx,
+      widget: widget,
+      parts: parts,
+      bare: true,
+    );
+
+    Widget kpi(String label, String value, IconData icon) => Expanded(
+      child: AppCard(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        child: Row(
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Icon(icon, color: scheme.primary, size: 24),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: muted),
+                  const SizedBox(height: 4),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      value,
+                      style: t.headlineSmall!.merge(tabular),
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final hasReceivables = c.receivables.isNotEmpty;
+    final hasWaiting = c.waiting.isNotEmpty;
+    final hasBirthdays = c.birthdays.isNotEmpty;
+    final hasStock = c.productAlerts.isNotEmpty;
+    final nothing =
+        !hasReceivables && !hasWaiting && !hasBirthdays && !hasStock;
+
+    final left = <Widget>[
+      if (hasReceivables)
+        AppCard(
+          title: 'A receber',
+          trailing: MoneyText(formatMoney(c.receivableTotal), small: true),
+          padding: const EdgeInsets.only(bottom: 8),
+          child: today({_Part.receivables}),
+        ),
+      if (hasWaiting)
+        AppCard(
+          title: 'Conversas sem resposta',
+          trailing: Text(
+            plural(c.waiting.length, 'conversa', 'conversas'),
+            style: muted,
+          ),
+          padding: const EdgeInsets.only(bottom: 8),
+          child: today({_Part.waiting}),
+        ),
+      if (hasBirthdays)
+        AppCard(
+          title: 'Aniversários',
+          padding: const EdgeInsets.only(bottom: 8),
+          child: today({_Part.birthdays}),
+        ),
+      if (nothing)
+        AppCard(
+          title: 'Tudo em dia',
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+          child: Text(
+            'Nenhuma parcela vence hoje, ninguém faz aniversário nesta '
+            'semana, nenhuma conversa espera resposta e o estoque está bom.',
+            style: muted,
+          ),
+        ),
+    ];
+    final right = <Widget>[
+      AppCard(
+        title: 'Mais vendidos',
+        padding: const EdgeInsets.only(bottom: 8),
+        child: n.top.isEmpty
+            ? Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                child: Text(
+                  'Nenhuma venda em ${monthLabel(c.month).toLowerCase()}.',
+                  style: muted,
+                ),
+              )
+            : Column(
+                children: [
+                  for (final p in n.top)
+                    AppListTile(
+                      title: Text(
+                        p.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        '${formatQuantity(p.quantity)} '
+                        '${p.quantity == 1000 ? 'vendido' : 'vendidos'}',
+                      ),
+                      trailing: Text(formatMoney(p.amount), style: tabular),
+                    ),
+                ],
+              ),
+      ),
+      if (hasStock)
+        AppCard(
+          title: 'Estoque',
+          trailing: Text(
+            plural(c.productAlerts.length, 'produto', 'produtos'),
+            style: muted,
+          ),
+          padding: const EdgeInsets.only(bottom: 8),
+          child: today({_Part.stock}),
+        ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // The month on the left, the three quick actions on the right.
+        Row(
+          children: [
+            // The arrow's own padding would push it in from the cards' edge.
+            Transform.translate(
+              offset: const Offset(-12, 0),
+              child: IconButton(
+                tooltip: 'Mês anterior',
+                icon: const Icon(Symbols.chevron_left_rounded),
+                onPressed: () => c.moveMonth(-1),
+              ),
+            ),
+            Transform.translate(
+              offset: const Offset(-12, 0),
+              child: Text(monthLabel(c.month), style: t.titleMedium),
+            ),
+            Transform.translate(
+              offset: const Offset(-12, 0),
+              child: IconButton(
+                tooltip: 'Próximo mês',
+                icon: const Icon(Symbols.chevron_right_rounded),
+                onPressed: c.atCurrentMonth ? null : () => c.moveMonth(1),
+              ),
+            ),
+            // The buttons take the room left and wrap when it is short.
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.end,
+                  children: [
+                    if (onSale != null)
+                      FilledButton.tonalIcon(
+                        onPressed: onSale,
+                        icon: const Icon(Symbols.point_of_sale_rounded),
+                        label: const Text('Nova venda'),
+                      ),
+                    FilledButton.tonalIcon(
+                      onPressed: onClient,
+                      icon: const Icon(Symbols.person_add_rounded),
+                      label: const Text('Novo cliente'),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: onProduct,
+                      icon: const Icon(Symbols.add_box_rounded),
+                      label: const Text('Novo produto'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          spacing: 16,
+          children: [
+            kpi(
+              'Faturamento',
+              formatMoney(n.revenue),
+              Symbols.payments_rounded,
+            ),
+            kpi('Vendas', '${n.count}', Symbols.receipt_long_rounded),
+            kpi('Ticket médio', formatMoney(ticket), Symbols.sell_rounded),
+            kpi('Lucro', formatMoney(n.profit), Symbols.trending_up_rounded),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 16,
+          children: [
+            Expanded(flex: 5, child: Column(spacing: 16, children: left)),
+            Expanded(flex: 4, child: Column(spacing: 16, children: right)),
+          ],
+        ),
       ],
     );
   }

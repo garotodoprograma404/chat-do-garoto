@@ -320,36 +320,41 @@ class _SaleScreenState extends State<SaleScreen> {
               padding: padding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 16,
                 children: [
                   ...top,
-                  const Divider(height: 32),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 16,
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: itemsBlock,
+                        child: AppCard(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: itemsBlock,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 24),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // The spacer that stood for the divider is not
-                            // needed on top of a column.
-                            if (moneyBlock.isNotEmpty &&
-                                moneyBlock.first is SizedBox)
-                              ...moneyBlock.skip(1)
-                            else
-                              ...moneyBlock,
-                          ],
+                        child: AppCard(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // The spacer that stood for the divider is not
+                              // needed on top of a card.
+                              if (moneyBlock.isNotEmpty &&
+                                  moneyBlock.first is SizedBox)
+                                ...moneyBlock.skip(1)
+                              else
+                                ...moneyBlock,
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
                   actions,
                 ],
               ),

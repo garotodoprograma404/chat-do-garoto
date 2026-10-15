@@ -30,6 +30,7 @@ const _sizes = {
   'tablet-pe': Size(800, 1180),
   'tablet-deitado': Size(1180, 820),
   'computador': Size(1440, 900),
+  'monitor': Size(1920, 1030),
 };
 
 void main() {

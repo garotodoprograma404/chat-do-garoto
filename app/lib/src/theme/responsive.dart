@@ -105,25 +105,31 @@ class WidthLimitedTransitions extends PageTransitionsBuilder {
     final limited = route.isFirst || route.settings.name == wideRouteName
         ? child
         : LayoutBuilder(
-            builder: (context, box) => box.maxWidth <= formWidth
+            builder: (context, box) => box.maxWidth <= formWidth + 64
                 ? child
                 : ColoredBox(
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    // A step darker than the page: the card stands out.
+                    color: Theme.of(context).colorScheme.surfaceContainerLowest,
                     child: ContentWidth(
-                      maxWidth: formWidth,
-                      // A thin edge on each side: the page reads as one
-                      // panel, bars included.
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          border: Border.symmetric(
-                            vertical: BorderSide(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .outlineVariant,
+                      maxWidth: formWidth + 32,
+                      // The page is a card, bars included, with a thin edge
+                      // and rounded corners. The edge is drawn
+                      // over the page: the page itself is opaque.
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                        child: DecoratedBox(
+                          position: DecorationPosition.foreground,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outline,
                             ),
                           ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: child,
+                          ),
                         ),
-                        child: child,
                       ),
                     ),
                   ),

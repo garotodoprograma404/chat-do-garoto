@@ -81,7 +81,7 @@ class _Ping extends ChangeNotifier {
 }
 
 /// Widest a detail page (a client, a product, a sale) goes in the pane.
-const paneWidth = 860.0;
+const paneWidth = 1200.0;
 
 /// Tells the lists below it that a detail pane exists.
 class DetailHost extends InheritedNotifier<DetailController> {

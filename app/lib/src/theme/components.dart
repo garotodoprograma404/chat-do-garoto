@@ -119,6 +119,69 @@ class EmptyState extends StatelessWidget {
   }
 }
 
+/// A card of the desktop panels: one subject, a surface a step
+/// lighter than the page with a thin edge, a title and an optional action
+/// on top. Rows inside keep their own 16 of side padding, so the title and
+/// the rows share one left edge.
+class AppCard extends StatelessWidget {
+  const AppCard({
+    super.key,
+    this.title,
+    this.trailing,
+    this.padding = EdgeInsets.zero,
+    required this.child,
+  });
+
+  final String? title;
+
+  /// What sits at the end of the title row: a total, a "Ver todas".
+  final Widget? trailing;
+
+  /// Around [child]; zero when it is a list of rows.
+  final EdgeInsetsGeometry padding;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = Theme.of(context).colorScheme;
+    final t = Theme.of(context).textTheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.outlineVariant),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (title case final title?)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: t.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    ?trailing,
+                  ],
+                ),
+              ),
+            Padding(padding: padding, child: child),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// A round avatar with the initials of [name], 40 dp.
 class InitialsAvatar extends StatelessWidget {
   const InitialsAvatar(this.name, {super.key, this.size = 40});

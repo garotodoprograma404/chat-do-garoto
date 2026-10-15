@@ -475,27 +475,38 @@ class _ProductScreenState extends State<ProductScreen> {
           // A wide pane: stock beside the details.
           if (box.maxWidth >= 760 && !p.isService) {
             return SingleChildScrollView(
-              padding: EdgeInsets.only(bottom: bottom),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, bottom),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 16,
                 children: [
-                  _header(p, today),
-                  _actions(p),
-                  const Divider(height: 32),
+                  AppCard(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [_header(p, today), _actions(p)],
+                    ),
+                  ),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 16,
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: _stock(p, today),
+                        child: AppCard(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: _stock(p, today),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 24),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: _details(p, today),
+                        child: AppCard(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: _details(p, today),
+                          ),
                         ),
                       ),
                     ],
