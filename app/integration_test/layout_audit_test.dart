@@ -29,8 +29,10 @@ const _sizes = {
   'celular': Size(390, 844),
   'tablet-pe': Size(800, 1180),
   'tablet-deitado': Size(1180, 820),
+  'notebook': Size(1366, 768),
   'computador': Size(1440, 900),
   'monitor': Size(1920, 1030),
+  'ultrawide': Size(2560, 1080),
 };
 
 void main() {

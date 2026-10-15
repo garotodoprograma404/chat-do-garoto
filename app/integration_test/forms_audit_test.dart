@@ -23,8 +23,10 @@ const _out = String.fromEnvironment(
 const _sizes = {
   'celular': Size(390, 844),
   'tablet': Size(800, 1180),
+  'notebook': Size(1366, 768),
   'computador': Size(1440, 900),
   'monitor': Size(1920, 1030),
+  'ultrawide': Size(2560, 1080),
 };
 
 void main() {

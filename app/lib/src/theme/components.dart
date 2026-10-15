@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import 'brand_mark.dart';
+import 'responsive.dart';
 
 /// An amount in evidence: the display face, aligned digits.
 class MoneyText extends StatelessWidget {
@@ -273,7 +274,53 @@ double listBottomPadding(
   BuildContext context, {
   bool fab = false,
   int fabs = 1,
-}) => (fab ? 28 + 68.0 * fabs : 24) + MediaQuery.paddingOf(context).bottom;
+}) =>
+    (fab && !actionBar(context) ? 28 + 68.0 * fabs : 24) +
+    MediaQuery.paddingOf(context).bottom;
+
+/// Where a list's main actions live: floating buttons on phones, a bar at
+/// the foot of the list on windows with a side bar (desktop and tablet),
+/// where a button floating over the rows covers them.
+bool actionBar(BuildContext context) =>
+    windowClass(context) != WindowClass.compact;
+
+/// The bar at the foot of a list that holds its main actions, side by side
+/// and as wide as the list (one under the other with large text).
+class ListActionBar extends StatelessWidget {
+  const ListActionBar({super.key, required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.surface,
+        border: Border(top: BorderSide(color: c.outlineVariant)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: largeText(context)
+              ? Column(
+                  // Only as tall as its buttons: the Scaffold gives its
+                  // bottom slot all the height it has.
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 8,
+                  children: children,
+                )
+              : Row(
+                  spacing: 8,
+                  children: [for (final b in children) Expanded(child: b)],
+                ),
+        ),
+      ),
+    );
+  }
+}
 
 /// The "cliente" mark next to a conversation of a client.
 class ClientMark extends StatelessWidget {

@@ -15,6 +15,7 @@ import '../sales/charge_message.dart';
 import '../sales/receive_dialog.dart';
 import '../sales/sale_form_screen.dart';
 import '../sales/sales_screen.dart' show SaleContext;
+import '../theme/brand_mark.dart' show DotGrid;
 import '../theme/components.dart';
 import '../theme/motion.dart';
 import 'chat_clients.dart';
@@ -323,6 +324,14 @@ class _ChatScreenState extends State<ChatScreen> {
       clock: widget.clock,
     );
     if (!mounted) return;
+    await _runPanelAction(action);
+  }
+
+  /// What a button of the client panel does, in the sheet or docked.
+  Future<void> _runPanelAction(PanelAction? action) async {
+    final repo = widget.clients;
+    final crm = _crm;
+    if (repo == null) return;
     switch (action) {
       case PanelAction.register:
         await _register();
@@ -359,7 +368,12 @@ class _ChatScreenState extends State<ChatScreen> {
       case null:
         break;
     }
+    // The docked panel shows numbers that the action may have changed.
+    if (mounted) setState(() => _panelEpoch++);
   }
+
+  /// Bumped after a panel action so the docked panel reloads its numbers.
+  int _panelEpoch = 0;
 
   DateTime get _now => (widget.clock ?? DateTime.now)();
 
@@ -768,14 +782,97 @@ class _ChatScreenState extends State<ChatScreen> {
     };
   }
 
+  /// Whether this conversation has a client panel to dock: one person, with
+  /// the CRM open.
+  bool get _canDock => widget.clients != null && isPersonChat(widget.chat.jid);
+
   @override
   Widget build(BuildContext context) {
+    // The conversation lays itself out by the room it has (its pane, not
+    // the window): a docked client panel on big panes, header, messages and
+    // message box on the same edges, bubbles that follow the column.
+    return LayoutBuilder(
+      builder: (context, box) {
+        final dock = _canDock && box.maxWidth >= dockMinPane;
+        final room = dock ? box.maxWidth - dockWidth : box.maxWidth;
+        final chat = _conversation(context, room, dock);
+        if (!dock) return chat;
+        return Row(
+          children: [
+            Expanded(child: chat),
+            _dock(context),
+          ],
+        );
+      },
+    );
+  }
+
+  /// The client panel beside the conversation (big panes only).
+  Widget _dock(BuildContext context) {
+    final c = Theme.of(context).colorScheme;
+    final crm = _crm;
+    return SizedBox(
+      width: dockWidth,
+      child: Material(
+        color: c.surface,
+        shape: Border(left: BorderSide(color: c.outlineVariant)),
+        child: Column(
+          children: [
+            SizedBox(
+              height:
+                  Theme.of(context).appBarTheme.toolbarHeight ?? kToolbarHeight,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    _client == null ? 'Contato' : 'Cliente',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+              ),
+            ),
+            Divider(height: 1, color: c.outlineVariant),
+            Expanded(
+              child: !_clientLoaded
+                  ? const SizedBox.shrink()
+                  : ClientPanelView(
+                      key: ValueKey('panel-${_client?.id}-$_panelEpoch'),
+                      docked: true,
+                      title: chatTitle(widget.chat),
+                      phone: _phone,
+                      client: _client,
+                      repo: widget.clients,
+                      sales: crm?.sales,
+                      canSell: crm?.sales != null && crm?.products != null,
+                      today: _now,
+                      onAction: _runPanelAction,
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Header, messages and message box for a column [room] wide.
+  Widget _conversation(BuildContext context, double room, bool dock) {
+    final side = ((room - chatColumnWidth) / 2).clamp(0.0, double.infinity);
+    final gutter = room < 600 ? 8.0 : 24.0;
+    final inset = side + gutter;
+    final wide = room >= 600;
     return Scaffold(
       appBar: AppBar(
+        // The title sits on the same left edge as the messages and the box
+        // (with a back arrow before it, the arrow takes that edge).
+        titleSpacing: Navigator.canPop(context)
+            ? (side > 0 ? side + 16 : null)
+            : (wide ? inset : null),
         // Tap the name for the client panel, as "Dados do contato" in
-        // WhatsApp.
+        // WhatsApp; with the panel docked it is
+        // already in view.
         title: GestureDetector(
-          onTap: _openPanel,
+          onTap: dock ? null : _openPanel,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -801,19 +898,22 @@ class _ChatScreenState extends State<ChatScreen> {
               PopupMenuItem(value: 'delete', child: Text('Excluir conversa')),
             ],
           ),
+          // The menu's right edge lines up with the messages' (48 wide
+          // button, 8 of its own padding).
+          SizedBox(width: side > 0 ? math.max(0, side + gutter - 16 - 8) : 0),
         ],
       ),
-      body: ContentWidth(
-        maxWidth: chatWidth,
-        child: Column(
-          children: [
-            if (_showStrip)
-              NewContactStrip(
-                onRegister: _register,
-                onLink: _link,
-                onIgnore: _ignore,
-              ),
-            Expanded(
+      body: Column(
+        children: [
+          if (_showStrip && !dock)
+            NewContactStrip(
+              onRegister: _register,
+              onLink: _link,
+              onIgnore: _ignore,
+            ),
+          Expanded(
+            child: _dots(
+              wide: wide,
               child: ListenableBuilder(
                 listenable: _controller,
                 builder: (context, _) {
@@ -824,7 +924,10 @@ class _ChatScreenState extends State<ChatScreen> {
                     // A screen of messages built ahead while idle: a fast
                     // fling starts with them ready.
                     scrollCacheExtent: const ScrollCacheExtent.viewport(1),
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: inset,
+                      vertical: 8,
+                    ),
                     itemCount: entries.length + (_controller.hasOlder ? 1 : 0),
                     itemBuilder: (context, i) {
                       if (i == entries.length) {
@@ -872,40 +975,52 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
               ),
             ),
-            ListenableBuilder(
-              listenable: _controller,
-              builder: (context, _) => _controller.inPast
-                  ? TextButton(
-                      onPressed: _controller.jumpToLatest,
-                      child: const Text('Ir para as mais recentes'),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-            if (_replyQuery case final q?)
-              _QuickReplyList(
+          ),
+          ListenableBuilder(
+            listenable: _controller,
+            builder: (context, _) => _controller.inPast
+                ? TextButton(
+                    onPressed: _controller.jumpToLatest,
+                    child: const Text('Ir para as mais recentes'),
+                  )
+                : const SizedBox.shrink(),
+          ),
+          if (_replyQuery case final q?)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: side),
+              child: _QuickReplyList(
                 replies: _replies,
                 query: q,
                 onPick: _useReply,
                 onManage: _crm?.chatPrefs == null ? null : _manageReplies,
               ),
-            _composer(context),
-          ],
-        ),
+            ),
+          _composer(context, inset: inset - 4, bar: wide),
+        ],
       ),
     );
   }
 
+  /// The brand's dots behind the messages on wide panes, where the column
+  /// leaves room at the sides.
+  Widget _dots({required bool wide, required Widget child}) =>
+      wide ? DotGrid(child: child) : child;
+
   /// The message box, or the note box in note mode: another color,
   /// "só você vê" and "Anotar" instead of sending.
-  Widget _composer(BuildContext context) {
+  Widget _composer(
+    BuildContext context, {
+    required double inset,
+    required bool bar,
+  }) {
     final colors = Theme.of(context).colorScheme;
     final note = _noteMode;
     final canNote = widget.clients != null && isPersonChat(widget.chat.jid);
     // Room under the box, clear of the system bar and of the keyboard
-    return SafeArea(
+    final box = SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(4, 6, 4, 10),
+        padding: EdgeInsets.fromLTRB(inset, 6, inset, 10),
         child: Row(
           children: [
             if (chatMediaPicker != null && _recording == null && !note)
@@ -968,6 +1083,16 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
       ),
+    );
+    if (!bar) return box;
+    // On wide panes the box rests on a bar that spans the whole width, as
+    // in the desktop messengers.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        border: Border(top: BorderSide(color: colors.outlineVariant)),
+      ),
+      child: box,
     );
   }
 }
@@ -1068,53 +1193,53 @@ class MessageBubble extends StatelessWidget {
     final small = Theme.of(context).textTheme.labelSmall!.copyWith(color: fg);
     // Rounded 20, with the corner next to the sender at 6.
     const big = Radius.circular(20), tail = Radius.circular(6);
-    return Align(
-      alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 3),
-        constraints: BoxConstraints(
-          maxWidth: math.min(
-            MediaQuery.sizeOf(context).width * 0.82,
-            bubbleWidth,
+    // The width follows the line the bubble sits in (the conversation's
+    // column), not the window.
+    return LayoutBuilder(
+      builder: (context, line) => Align(
+        alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 3),
+          constraints: BoxConstraints(maxWidth: bubbleMaxWidth(line.maxWidth)),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.only(
+              topLeft: big,
+              topRight: big,
+              bottomLeft: mine ? big : tail,
+              bottomRight: mine ? tail : big,
+            ),
           ),
-        ),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.only(
-            topLeft: big,
-            topRight: big,
-            bottomLeft: mine ? big : tail,
-            bottomRight: mine ? tail : big,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-          child: DefaultTextStyle.merge(
-            style: TextStyle(color: fg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (message.forwarded) Text('↪ Encaminhada', style: small),
-                if (showSender && !mine && message.senderName.isNotEmpty)
-                  Text(message.senderName, style: small),
-                if (photo case final photo?) ...[
-                  photo,
-                  if (message.text.isNotEmpty) Text(message.text),
-                ] else
-                  Text(messageText(message)),
-                Text(
-                  [
-                    shortTime(message.ts),
-                    if (message.kind != 'revoked') statusLabel(message.status),
-                  ].where((s) => s.isNotEmpty).join('  '),
-                  style: small,
-                ),
-                if (message.status == 'failed')
-                  TextButton(
-                    onPressed: onRetry,
-                    child: const Text('Tentar de novo'),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+            child: DefaultTextStyle.merge(
+              style: TextStyle(color: fg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (message.forwarded) Text('↪ Encaminhada', style: small),
+                  if (showSender && !mine && message.senderName.isNotEmpty)
+                    Text(message.senderName, style: small),
+                  if (photo case final photo?) ...[
+                    photo,
+                    if (message.text.isNotEmpty) Text(message.text),
+                  ] else
+                    Text(messageText(message)),
+                  Text(
+                    [
+                      shortTime(message.ts),
+                      if (message.kind != 'revoked')
+                        statusLabel(message.status),
+                    ].where((s) => s.isNotEmpty).join('  '),
+                    style: small,
                   ),
-              ],
+                  if (message.status == 'failed')
+                    TextButton(
+                      onPressed: onRetry,
+                      child: const Text('Tentar de novo'),
+                    ),
+                ],
+              ),
             ),
           ),
         ),

@@ -209,6 +209,11 @@ void main() {
   testWidgets('the screen: today, the month and opening a sale', (
     tester,
   ) async {
+    // A phone: the gear is in the title bar (a window with a side bar has
+    // it there instead).
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetPhysicalSize);
     final w = await _world();
     var settings = 0;
     await pump(

@@ -154,6 +154,24 @@ class _SalesScreenState extends State<SalesScreen>
     );
   }
 
+  /// The same two buttons as a bar at the foot of the list (desktop,
+  /// tablet).
+  Widget _bar() => ListActionBar(
+    children: [
+      FilledButton.tonalIcon(
+        onPressed: () => _open(QuickSaleScreen(ctx: widget.ctx)),
+        icon: const Icon(Symbols.bolt_rounded),
+        label: const Text('Venda rápida'),
+      ),
+      if (widget.ctx.products != null)
+        FilledButton.icon(
+          onPressed: () => _open(SaleFormScreen(ctx: widget.ctx)),
+          icon: const Icon(Symbols.point_of_sale_rounded),
+          label: const Text('Nova venda'),
+        ),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
     // Side by side the two buttons are about 300 dp at normal size; with
@@ -184,7 +202,8 @@ class _SalesScreenState extends State<SalesScreen>
               ],
             ),
           ),
-          floatingActionButton: _buttons(context),
+          floatingActionButton: actionBar(context) ? null : _buttons(context),
+          bottomNavigationBar: actionBar(context) ? _bar() : null,
           body: TabBarView(
             controller: _tabs,
             children: [

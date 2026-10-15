@@ -151,12 +151,25 @@ class _ClientsScreenState extends State<ClientsScreen> {
             SettingsMenuButton(onOpenSettings: open),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'new-client',
-        onPressed: () => _open(ClientFormScreen(repo: widget.repo)),
-        icon: const Icon(Symbols.person_add_rounded),
-        label: const Text('Novo cliente'),
-      ),
+      floatingActionButton: actionBar(context)
+          ? null
+          : FloatingActionButton.extended(
+              heroTag: 'new-client',
+              onPressed: () => _open(ClientFormScreen(repo: widget.repo)),
+              icon: const Icon(Symbols.person_add_rounded),
+              label: const Text('Novo cliente'),
+            ),
+      bottomNavigationBar: actionBar(context)
+          ? ListActionBar(
+              children: [
+                FilledButton.icon(
+                  onPressed: () => _open(ClientFormScreen(repo: widget.repo)),
+                  icon: const Icon(Symbols.person_add_rounded),
+                  label: const Text('Novo cliente'),
+                ),
+              ],
+            )
+          : null,
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) {

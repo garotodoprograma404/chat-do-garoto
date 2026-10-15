@@ -219,15 +219,18 @@ class SettingsScreen extends StatelessWidget implements WideScreen {
   @override
   Widget build(BuildContext context) {
     final prefs = CrmScope.maybeOf(context)?.chatPrefs;
-    return Scaffold(
-      appBar: AppBar(title: const SemicolonText('Configurações')),
-      body: ListenableBuilder(
-        listenable: Listenable.merge([whatsapp, lock, ?theme]),
-        // In groups, each item with its icon.
-        builder: (context, _) => LayoutBuilder(
-          builder: (context, box) => box.maxWidth >= 900
-              ? _wide(context, prefs)
-              : _narrow(context, prefs),
+    return ContentWidth(
+      maxWidth: panelWidth,
+      child: Scaffold(
+        appBar: AppBar(title: const SemicolonText('Configurações')),
+        body: ListenableBuilder(
+          listenable: Listenable.merge([whatsapp, lock, ?theme]),
+          // In groups, each item with its icon.
+          builder: (context, _) => LayoutBuilder(
+            builder: (context, box) => box.maxWidth >= 900
+                ? _wide(context, prefs)
+                : _narrow(context, prefs),
+          ),
         ),
       ),
     );

@@ -293,6 +293,9 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.circular(radiusSheet),
         ),
         titleTextStyle: text.headlineSmall,
+        // A dialog is not a sliver on a big window: at least 360 wide, and
+        // on a phone the screen's own limit wins.
+        constraints: const BoxConstraints(minWidth: 360, maxWidth: 560),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

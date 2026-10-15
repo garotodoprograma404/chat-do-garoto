@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../clients/clients_repository.dart';
 import '../core_bridge/core_bridge.dart';
+import '../theme/responsive.dart';
 import 'chats_screen.dart' show shortTime;
 
 /// One line of a conversation: a WhatsApp message or an internal note
@@ -63,41 +64,45 @@ class NoteBubble extends StatelessWidget {
     final on = colors.onTertiaryContainer;
     return GestureDetector(
       onLongPress: onLongPress,
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 3),
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.sizeOf(context).width * 0.82,
-          ),
-          decoration: BoxDecoration(
-            color: colors.tertiaryContainer,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Symbols.sticky_note_2_rounded, size: 16, color: on),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      'Nota · só você vê',
-                      style: t.labelMedium!.copyWith(color: on),
+      // The bubble's width follows the line it sits in (the conversation's
+      // column), not the window.
+      child: LayoutBuilder(
+        builder: (context, line) => Align(
+          alignment: Alignment.centerRight,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 3),
+            constraints: BoxConstraints(
+              maxWidth: bubbleMaxWidth(line.maxWidth),
+            ),
+            decoration: BoxDecoration(
+              color: colors.tertiaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Symbols.sticky_note_2_rounded, size: 16, color: on),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'Nota · só você vê',
+                        style: t.labelMedium!.copyWith(color: on),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(note.body, style: TextStyle(color: on)),
-              Text(
-                shortTime(note.at.millisecondsSinceEpoch),
-                style: t.labelSmall!.copyWith(color: on),
-              ),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(note.body, style: TextStyle(color: on)),
+                Text(
+                  shortTime(note.at.millisecondsSinceEpoch),
+                  style: t.labelSmall!.copyWith(color: on),
+                ),
+              ],
+            ),
           ),
         ),
       ),

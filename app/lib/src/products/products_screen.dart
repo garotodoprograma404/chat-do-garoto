@@ -81,6 +81,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
     _detailReloader.attach(context, _controller.load);
   }
 
+  void _newProduct() => _open(
+    ProductFormScreen(
+      repo: widget.repo,
+      photos: widget.photos,
+      clock: widget.clock,
+    ),
+  );
+
   Future<void> _open(Widget screen) async {
     await Navigator.of(context)
         .push(MaterialPageRoute<void>(builder: (_) => screen));
@@ -210,18 +218,25 @@ class _ProductsScreenState extends State<ProductsScreen> {
             SettingsMenuButton(onOpenSettings: open),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'new-product',
-        onPressed: () => _open(
-          ProductFormScreen(
-            repo: widget.repo,
-            photos: widget.photos,
-            clock: widget.clock,
-          ),
-        ),
-        icon: const Icon(Symbols.add_box_rounded),
-        label: const Text('Novo produto'),
-      ),
+      floatingActionButton: actionBar(context)
+          ? null
+          : FloatingActionButton.extended(
+              heroTag: 'new-product',
+              onPressed: _newProduct,
+              icon: const Icon(Symbols.add_box_rounded),
+              label: const Text('Novo produto'),
+            ),
+      bottomNavigationBar: actionBar(context)
+          ? ListActionBar(
+              children: [
+                FilledButton.icon(
+                  onPressed: _newProduct,
+                  icon: const Icon(Symbols.add_box_rounded),
+                  label: const Text('Novo produto'),
+                ),
+              ],
+            )
+          : null,
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) {

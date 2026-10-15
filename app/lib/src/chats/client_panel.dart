@@ -9,6 +9,11 @@ import '../sales/sales_repository.dart';
 import '../theme/components.dart';
 import '../theme/motion.dart';
 
+/// Width of the client panel docked beside a conversation, and the least
+/// room (the conversation's pane) that has space for it.
+const dockWidth = 340.0;
+const dockMinPane = 1080.0;
+
 /// What the person picked in the client panel; the conversation acts on
 /// it.
 enum PanelAction { newSale, receive, charge, openFile, register, link }
@@ -33,7 +38,7 @@ Future<PanelAction?> showClientPanel(
     duration: Motion.of(context, Motion.sheetIn),
     reverseDuration: Motion.of(context, Motion.sheetOut),
   ),
-  builder: (_) => _ClientPanel(
+  builder: (context) => ClientPanelView(
     title: title,
     phone: phone,
     client: client,
@@ -41,11 +46,16 @@ Future<PanelAction?> showClientPanel(
     sales: sales,
     canSell: canSell,
     today: (clock ?? DateTime.now)(),
+    onAction: (action) => Navigator.pop(context, action),
   ),
 );
 
-class _ClientPanel extends StatefulWidget {
-  const _ClientPanel({
+/// The client's numbers, last notes and actions. Opened as a sheet on
+/// small windows ([showClientPanel]) and docked beside a conversation on
+/// big ones ([docked]), where it stays in view while the person talks.
+class ClientPanelView extends StatefulWidget {
+  const ClientPanelView({
+    super.key,
     required this.title,
     required this.phone,
     required this.client,
@@ -53,7 +63,14 @@ class _ClientPanel extends StatefulWidget {
     required this.sales,
     required this.canSell,
     required this.today,
+    required this.onAction,
+    this.docked = false,
   });
+
+  /// Whether it lives beside the conversation: the actions stack in a
+  /// column, one per line, as in a side panel.
+  final bool docked;
+  final ValueChanged<PanelAction> onAction;
 
   final String title;
   final String phone;
@@ -64,10 +81,10 @@ class _ClientPanel extends StatefulWidget {
   final DateTime today;
 
   @override
-  State<_ClientPanel> createState() => _ClientPanelState();
+  State<ClientPanelView> createState() => _ClientPanelState();
 }
 
-class _ClientPanelState extends State<_ClientPanel> {
+class _ClientPanelState extends State<ClientPanelView> {
   ClientSummary? _summary;
   List<ClientNote> _notes = const [];
 
@@ -89,7 +106,7 @@ class _ClientPanelState extends State<_ClientPanel> {
     });
   }
 
-  void _pick(PanelAction action) => Navigator.pop(context, action);
+  void _pick(PanelAction action) => widget.onAction(action);
 
   @override
   Widget build(BuildContext context) {
@@ -98,13 +115,16 @@ class _ClientPanelState extends State<_ClientPanel> {
     final client = widget.client;
     final summary = _summary;
     final name = client?.name ?? widget.title;
+    final docked = widget.docked;
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        24,
-        0,
-        24,
-        24 + MediaQuery.paddingOf(context).bottom,
-      ),
+      padding: docked
+          ? const EdgeInsets.all(24)
+          : EdgeInsets.fromLTRB(
+              24,
+              0,
+              24,
+              24 + MediaQuery.paddingOf(context).bottom,
+            ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,9 +158,8 @@ class _ClientPanelState extends State<_ClientPanel> {
           if (client == null) ...[
             const Text('Este contato ainda não é cliente.'),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            _Actions(
+              docked: docked,
               children: [
                 FilledButton.icon(
                   onPressed: () => _pick(PanelAction.register),
@@ -178,9 +197,8 @@ class _ClientPanelState extends State<_ClientPanel> {
                 ),
             ],
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            _Actions(
+              docked: docked,
               children: [
                 if (widget.canSell)
                   FilledButton.icon(
@@ -212,4 +230,22 @@ class _ClientPanelState extends State<_ClientPanel> {
       ),
     );
   }
+}
+
+/// The panel's buttons: side by side, wrapping, in the sheet; one per
+/// line, full width, in the docked panel.
+class _Actions extends StatelessWidget {
+  const _Actions({required this.docked, required this.children});
+
+  final bool docked;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => docked
+      ? Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: children,
+        )
+      : Wrap(spacing: 8, runSpacing: 8, children: children);
 }

@@ -21,6 +21,7 @@ import '../sales/sale_screen.dart';
 import '../sales/sales_repository.dart';
 import '../sales/sales_screen.dart';
 import '../theme/brand_mark.dart';
+import '../theme/brand_nav_bar.dart' show BrandNavRail;
 import '../theme/app_theme.dart';
 import '../theme/components.dart';
 import '../theme/status_colors.dart';
@@ -163,11 +164,25 @@ class _StartScreenState extends State<StartScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // On a very wide window the panel stays centered (dashboardWidth) and
+    // the title moves to the same edge as its cards.
+    final side = sideRoom(
+      MediaQuery.sizeOf(context).width -
+          (windowClass(context) == WindowClass.compact
+              ? 0
+              : BrandNavRail.widthFor(
+                  MediaQuery.textScalerOf(context).scale(10) / 10,
+                )),
+      dashboardWidth,
+    );
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: side > 0 ? 16 + side : null,
         title: const SemicolonText('Início'),
         actions: [
-          if (widget.onOpenSettings case final open?)
+          // On windows with a side bar the gear is already there.
+          if (widget.onOpenSettings case final open?
+              when windowClass(context) == WindowClass.compact)
             IconButton(
               tooltip: 'Configurações',
               icon: const Icon(Symbols.settings_rounded),
@@ -225,9 +240,11 @@ class _StartScreenState extends State<StartScreen> {
                 return SingleChildScrollView(
                   padding: EdgeInsets.fromLTRB(16, 8, 16, bottom),
                   child: Align(
-                    alignment: Alignment.topLeft,
+                    alignment: Alignment.topCenter,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 2200),
+                      constraints: const BoxConstraints(
+                        maxWidth: dashboardWidth,
+                      ),
                       child: _Dashboard(
                         controller: _c,
                         open: _open,

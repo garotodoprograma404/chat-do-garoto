@@ -46,13 +46,16 @@ class BackupScreen extends StatelessWidget implements WideScreen {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Backup')),
-      body: ListenableBuilder(
-        listenable: controller,
-        builder: (context, _) => LayoutBuilder(
-          builder: (context, box) =>
-              box.maxWidth >= 900 ? _wide(context) : _narrow(context),
+    return ContentWidth(
+      maxWidth: panelWidth,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Backup')),
+        body: ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) => LayoutBuilder(
+            builder: (context, box) =>
+                box.maxWidth >= 900 ? _wide(context) : _narrow(context),
+          ),
         ),
       ),
     );

@@ -35,15 +35,35 @@ double pageMargin(BuildContext context) =>
 /// Widest a full-width reading screen goes (Início, Configurações).
 const readingWidth = 760.0;
 
-/// Widest the messages column of a conversation goes (bubbles and the
-/// message box), centered in the pane.
-const chatWidth = 820.0;
+/// Widest the messages column of a conversation goes (header, bubbles and
+/// message box share it); on a wider pane the extra room is left on both
+/// sides, with the brand dots, and everything stays on the same edges.
+const chatColumnWidth = 1040.0;
 
-/// Widest a single message bubble goes.
-const bubbleWidth = 560.0;
+/// Widest a panel of cards goes (Configurações, Backup): bar and cards stay
+/// together, centered, on a very wide window.
+const panelWidth = 1280.0;
+
+/// Widest the Início panel goes; on a wider window it stays centered and
+/// the title above it moves to the same edge ([sideRoom]).
+const dashboardWidth = 1680.0;
+
+/// The room left on each side of content [max] wide in [width]: what a
+/// header adds to its own margin to sit on the content's edge.
+double sideRoom(double width, double max) =>
+    ((width - max) / 2).clamp(0.0, double.infinity);
+
+/// How wide a message bubble goes in a column [available] wide: most of it
+/// on a phone, about two thirds on a big window, never a wall of text.
+double bubbleMaxWidth(double available) =>
+    available < 480 ? available * 0.86 : (available * 0.72).clamp(0, 680);
 
 /// Widest a form or a screen opened over the others goes.
 const formWidth = 640.0;
+
+/// Tallest one goes: a form opened over a big window is a card in the
+/// middle, not a strip from top to bottom.
+const formHeight = 780.0;
 
 /// Keeps [child] at most [maxWidth] wide, centered: text and forms stay
 /// easy to read on big windows. Narrow windows are untouched.
@@ -110,24 +130,31 @@ class WidthLimitedTransitions extends PageTransitionsBuilder {
                 : ColoredBox(
                     // A step darker than the page: the card stands out.
                     color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                    child: ContentWidth(
-                      maxWidth: formWidth + 32,
-                      // The page is a card, bars included, with a thin edge
-                      // and rounded corners. The edge is drawn
-                      // over the page: the page itself is opaque.
+                    // The page is a card in the middle, like a dialog: no
+                    // taller than [formHeight], so on a tall monitor a short
+                    // form is not a long empty strip.
+                    child: Center(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                        child: DecoratedBox(
-                          position: DecorationPosition.foreground,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
+                        padding: const EdgeInsets.all(24),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: formWidth,
+                            maxHeight: formHeight,
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: child,
+                          // A thin edge and rounded corners, drawn over the
+                          // page: the page itself is opaque.
+                          child: DecoratedBox(
+                            position: DecorationPosition.foreground,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: child,
+                            ),
                           ),
                         ),
                       ),
@@ -181,11 +208,20 @@ class FilterBar extends StatelessWidget {
         child: Row(spacing: 8, children: children),
       );
     }
+    // A mouse is precise: the chips are a little lower, so the lines of
+    // filters take less of the list.
+    final theme = Theme.of(context);
     return Padding(
       padding: padding,
       child: Align(
         alignment: Alignment.centerLeft,
-        child: Wrap(spacing: 8, runSpacing: 8, children: children),
+        child: Theme(
+          data: theme.copyWith(
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Wrap(spacing: 8, runSpacing: 8, children: children),
+        ),
       ),
     );
   }

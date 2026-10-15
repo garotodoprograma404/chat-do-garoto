@@ -26,7 +26,7 @@ Feito pelo [Garoto do Programa;](https://instagram.com/garotodoprograma) · sist
 
 <sub>// prints do modo demonstração, tirados do app rodando de verdade. Todo nome e número aí é inventado.</sub>
 
-**Um app só, três tamanhos.** No computador e no tablet deitado: barra lateral, lista e a conversa (ou a ficha) ao lado, como no WhatsApp Desktop. No tablet em pé: barra lateral e uma coluna. No celular: barra de abas embaixo.
+**Um app só, todos os tamanhos.** No computador e no tablet deitado: barra lateral, lista e a conversa (ou a ficha) ao lado, como no WhatsApp Desktop; em monitor grande, a ficha do cliente fica fixa ao lado da conversa. No tablet em pé: barra lateral e uma coluna. No celular: barra de abas embaixo. Conferido em celular, tablet, notebook, monitor e ultrawide, com a fonte em 200%.
 
 ## experimenta em 1 minuto (sem conectar nada);
 
@@ -68,7 +68,7 @@ O app funciona enquanto o WhatsApp oficial do seu celular for aberto pelo menos 
 Nada de criptografia inventada: só biblioteca reconhecida. (0019)
 
 **Feito com processo, do jeito que time sério faz:**
-- **400 testes no app e 131 no Go**, rodando a cada envio no GitHub;
+- **408 testes no app e 131 no Go**, rodando a cada envio no GitHub;
 - o guia de desenvolvimento, com as regras do código: [`CONTRIBUINDO.md`](CONTRIBUINDO.md).
 
 ## como rodar de verdade;
