@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../chats/media/media_tiles.dart' show formatSize;
+import '../theme/components.dart';
+import '../theme/responsive.dart';
 import 'backup_controller.dart';
 
 /// Configurações → Backup: make one, restore one, the last date
 /// and the reminder.
-class BackupScreen extends StatelessWidget {
+class BackupScreen extends StatelessWidget implements WideScreen {
   const BackupScreen({
     super.key,
     required this.controller,
@@ -47,64 +50,175 @@ class BackupScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Backup')),
       body: ListenableBuilder(
         listenable: controller,
-        builder: (context, _) {
-          final c = controller;
-          return ListView(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              16 + MediaQuery.paddingOf(context).bottom,
+        builder: (context, _) => LayoutBuilder(
+          builder: (context, box) =>
+              box.maxWidth >= 900 ? _wide(context) : _narrow(context),
+        ),
+      ),
+    );
+  }
+
+  String _lastText() => switch (controller.lastBackup) {
+    null => 'Você ainda não fez backup.',
+    final d => 'Último backup: ${_two(d.day)}/${_two(d.month)}/${d.year}',
+  };
+
+  Widget _reminder() => Row(
+    children: [
+      const Expanded(child: Text('Lembrar de fazer backup')),
+      DropdownButton<int>(
+        value: controller.intervalDays,
+        items: [
+          for (final d in reminderChoices)
+            DropdownMenuItem(
+              value: d,
+              child: Text(d == 0 ? 'Desligado' : 'A cada $d dias'),
             ),
+        ],
+        onChanged: (d) => d == null ? null : controller.setInterval(d),
+      ),
+    ],
+  );
+
+  /// The phone's page: one column.
+  Widget _narrow(BuildContext context) {
+    final c = controller;
+    return ListView(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        16 + MediaQuery.paddingOf(context).bottom,
+      ),
+      children: [
+        Text(_lastText()),
+        const SizedBox(height: 8),
+        const Text(
+          'O backup é um arquivo cifrado com uma senha só sua. Guarde-o '
+          'fora do celular (Drive, pendrive, e-mail) para recuperar os '
+          'dados se perder o aparelho.',
+        ),
+        const SizedBox(height: 16),
+        if (canExport)
+          FilledButton(
+            onPressed: c.busy ? null : () => _export(context),
+            child: const Text('Fazer backup agora'),
+          ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: c.busy ? null : () => _restore(context),
+          child: const Text('Restaurar backup'),
+        ),
+        const SizedBox(height: 16),
+        _Status(controller: c),
+        if (canExport) ...[const SizedBox(height: 16), _reminder()],
+      ],
+    );
+  }
+
+  /// A wide window: the backup, its reminder and how it works, in cards
+  Widget _wide(BuildContext context) {
+    final c = controller;
+    final t = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final muted = t.bodyMedium!.copyWith(color: scheme.onSurfaceVariant);
+    Widget point(IconData icon, String text) => Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 12,
+      children: [
+        Icon(icon, color: scheme.primary, size: 22),
+        Expanded(child: Text(text, style: muted)),
+      ],
+    );
+    final left = AppCard(
+      title: 'Seu backup',
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 16,
+        children: [
+          Text(_lastText(), style: t.titleMedium),
+          const Text(
+            'O backup é um arquivo cifrado com uma senha só sua. Guarde-o '
+            'fora do computador e do celular (Drive, pendrive, e-mail) para '
+            'recuperar os dados se perder o aparelho.',
+          ),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
             children: [
-              Text(switch (c.lastBackup) {
-                null => 'Você ainda não fez backup.',
-                final d =>
-                  'Último backup: ${_two(d.day)}/${_two(d.month)}/${d.year}',
-              }),
-              const SizedBox(height: 8),
-              const Text(
-                'O backup é um arquivo cifrado com uma senha só sua. Guarde-o '
-                'fora do celular (Drive, pendrive, e-mail) para recuperar os '
-                'dados se perder o aparelho.',
-              ),
-              const SizedBox(height: 16),
               if (canExport)
-                FilledButton(
+                FilledButton.icon(
                   onPressed: c.busy ? null : () => _export(context),
-                  child: const Text('Fazer backup agora'),
+                  icon: const Icon(Symbols.backup_rounded),
+                  label: const Text('Fazer backup agora'),
                 ),
-              const SizedBox(height: 8),
-              OutlinedButton(
+              OutlinedButton.icon(
                 onPressed: c.busy ? null : () => _restore(context),
-                child: const Text('Restaurar backup'),
+                icon: const Icon(Symbols.restore_rounded),
+                label: const Text('Restaurar backup'),
               ),
-              const SizedBox(height: 16),
-              _Status(controller: c),
-              if (canExport) ...[
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const Expanded(child: Text('Lembrar de fazer backup')),
-                    DropdownButton<int>(
-                      value: c.intervalDays,
-                      items: [
-                        for (final d in reminderChoices)
-                          DropdownMenuItem(
-                            value: d,
-                            child: Text(
-                              d == 0 ? 'Desligado' : 'A cada $d dias',
-                            ),
-                          ),
-                      ],
-                      onChanged: (d) => d == null ? null : c.setInterval(d),
-                    ),
-                  ],
-                ),
-              ],
             ],
-          );
-        },
+          ),
+          _Status(controller: c),
+        ],
+      ),
+    );
+    final right = [
+      if (canExport)
+        AppCard(
+          title: 'Lembrete',
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 12,
+            children: [
+              Text(
+                'O app avisa no alto da tela quando o backup estiver atrasado.',
+                style: muted,
+              ),
+              _reminder(),
+            ],
+          ),
+        ),
+      AppCard(
+        title: 'Como funciona',
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 12,
+          children: [
+            point(
+              Symbols.key_rounded,
+              'A senha é só sua. Sem ela ninguém abre o backup, nem nós.',
+            ),
+            point(
+              Symbols.lock_rounded,
+              'O arquivo vai cifrado: clientes, produtos, vendas, conversas '
+              'e mídias.',
+            ),
+            point(
+              Symbols.restore_rounded,
+              'Restaurar troca todos os dados deste aparelho pelos do backup.',
+            ),
+          ],
+        ),
+      ),
+    ];
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        8,
+        16,
+        24 + MediaQuery.paddingOf(context).bottom,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 16,
+        children: [
+          Expanded(flex: 6, child: left),
+          Expanded(flex: 4, child: Column(spacing: 16, children: right)),
+        ],
       ),
     );
   }

@@ -24,6 +24,7 @@ const _sizes = {
   'celular': Size(390, 844),
   'tablet': Size(800, 1180),
   'computador': Size(1440, 900),
+  'monitor': Size(1920, 1030),
 };
 
 void main() {
