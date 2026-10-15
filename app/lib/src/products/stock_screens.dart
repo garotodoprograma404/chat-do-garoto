@@ -172,6 +172,8 @@ class _StockMoveScreenState extends State<StockMoveScreen> {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
+            // The rhythm of every form: 16 between fields.
+            spacing: 16,
             children: [
               Text(p.name, style: Theme.of(context).textTheme.titleMedium),
               if (p.hasVariants)
@@ -195,7 +197,6 @@ class _StockMoveScreenState extends State<StockMoveScreen> {
                 'Estoque atual: ${stockText(_variant.stock, p.unit)} · custo '
                 '${formatMoney(_variant.cost)}',
               ),
-              const SizedBox(height: 8),
               SegmentedButton<MoveKind>(
                 segments: const [
                   ButtonSegment(value: MoveKind.entry, label: Text('Entrada')),
@@ -227,9 +228,9 @@ class _StockMoveScreenState extends State<StockMoveScreen> {
                   ),
                 ),
               if (_kind == MoveKind.exit) ...[
-                const SizedBox(height: 8),
                 Wrap(
-                  spacing: 4,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     for (final r in exitReasons)
                       ChoiceChip(
@@ -251,10 +252,7 @@ class _StockMoveScreenState extends State<StockMoveScreen> {
                 controller: _note,
                 decoration: const InputDecoration(labelText: 'Observação'),
               ),
-              if (preview != null) ...[
-                const SizedBox(height: 8),
-                Text(preview),
-              ],
+              if (preview != null) Text(preview),
             ],
           ),
         ),

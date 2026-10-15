@@ -11,6 +11,7 @@ import 'package:chat_do_garoto/src/theme/brand_nav_bar.dart';
 import 'package:chat_do_garoto/src/theme/theme_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -55,15 +56,18 @@ void main() {
       matching: find.text(label),
     );
 
-    Future<void> goBack() async {
-      // Back to the shell: pop whatever is open over it (the pane, if any,
-      // is emptied by changing section).
-      for (var i = 0; i < 3; i++) {
-        // On the phone the form sits on the app's navigator; beside the side
-        // bar, tapping the section (next step) closes it.
-        final nav = tester.state<NavigatorState>(find.byType(Navigator).first);
-        if (!nav.canPop()) break;
-        nav.pop();
+    Future<void> goBack({int pages = 3}) async {
+      // Back to the shell: pop what is open over it, the innermost
+      // navigator first (the content one beside the side bar, or the app's
+      // own on a phone).
+      for (var i = 0; i < pages; i++) {
+        final navs = tester
+            .stateList<NavigatorState>(find.byType(Navigator))
+            .toList()
+            .reversed;
+        final open = navs.where((n) => n.canPop());
+        if (open.isEmpty) break;
+        open.first.pop();
         await wait(400);
       }
     }
@@ -105,6 +109,25 @@ void main() {
         await tester.tap(fab.last);
         await wait(900);
         await save('$name-$picture');
+        // Open every group of the form (the accordions) and look again.
+        for (final group in const [
+          'Mais detalhes',
+          'Código de barras e código interno',
+          'Custo e lucro',
+          'Promoção',
+          'Atacado',
+          'Estoque e validade',
+          'Variações (tamanho, cor...)',
+          'Categoria, marca e descrição',
+        ]) {
+          final g = find.text(group);
+          if (g.evaluate().isNotEmpty) {
+            await tester.ensureVisible(g.first);
+            await tester.tap(g.first, warnIfMissed: false);
+            await wait(250);
+          }
+        }
+        await save('$name-$picture-grupos');
         // The lower half of a long form.
         final scroll = find.byType(Scrollable);
         if (scroll.evaluate().isNotEmpty) {
@@ -135,6 +158,55 @@ void main() {
       await tester.tap(find.text('Backup').first);
       await wait(900);
       await save('$name-backup');
+      await goBack();
+      await tester.tap(navItem('Início'));
+      await wait();
+
+      // Pickers and dialogs: what opens over a form or a detail.
+      Future<void> shotIf(Finder f, String picture, {int ms = 800}) async {
+        if (f.evaluate().isEmpty) {
+          // ignore: avoid_print
+          print('!!! sem $picture em $name');
+          return;
+        }
+        await tester.tap(f.first);
+        await wait(ms);
+        await save('$name-$picture');
+      }
+
+      // ignore: avoid_print
+      print('>>> $name / seletores');
+      await tester.tap(navItem('Vendas'));
+      await wait();
+      await tester.tap(find.text('Nova venda').last);
+      await wait(900);
+      await shotIf(find.text('Escolher cliente'), 'seletor-cliente');
+      await goBack(pages: 1);
+      await wait(900);
+      await shotIf(find.text('Adicionar item'), 'seletor-item', ms: 1200);
+      await goBack();
+      await tester.tap(navItem('Vendas'));
+      await wait();
+
+      // ignore: avoid_print
+      print('>>> $name / janelas');
+      await tester.tap(navItem('Clientes'));
+      await wait();
+      await tester.tap(find.textContaining('Bruno Costa').first);
+      await wait(900);
+      await shotIf(find.text('Receber'), 'janela-receber');
+      // A dialog is closed with Esc or the first button.
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await wait(400);
+      await shotIf(find.byTooltip('Apagar cliente'), 'janela-apagar-cliente');
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await wait(400);
+      await goBack();
+      await tester.tap(navItem('Produtos'));
+      await wait();
+      await tester.tap(find.textContaining('Moletom').first);
+      await wait(900);
+      await shotIf(find.text('Movimentar estoque'), 'pagina-movimentar');
       await goBack();
       await tester.tap(navItem('Início'));
       await wait();

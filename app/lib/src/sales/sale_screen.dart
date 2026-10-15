@@ -158,6 +158,8 @@ class _SaleScreenState extends State<SaleScreen> {
 
   Widget _line(String title, String value, {TextStyle? style}) => ListTile(
     dense: true,
+    // On the same left edge as the section titles.
+    contentPadding: EdgeInsets.zero,
     title: Text(title),
     subtitle: Text(value, style: style),
   );
@@ -191,103 +193,107 @@ class _SaleScreenState extends State<SaleScreen> {
             ),
         ],
       ),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          16 + MediaQuery.paddingOf(context).bottom,
-        ),
-        children: [
-          if (_celebrating case final text?)
-            Highlight(
-              key: ValueKey(_celebration),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _Done(text),
-                  const SizedBox(height: 8),
-                  _Header(sale: s, status: status),
-                ],
+      body: LayoutBuilder(
+        builder: (context, box) {
+          // A wide pane: the items beside the payments and installments
+          final wide = box.maxWidth >= 760;
+          final top = <Widget>[
+            if (_celebrating case final text?)
+              Highlight(
+                key: ValueKey(_celebration),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _Done(text),
+                    const SizedBox(height: 8),
+                    _Header(sale: s, status: status),
+                  ],
+                ),
+              )
+            else
+              _Header(sale: s, status: status),
+          ];
+          final itemsBlock = <Widget>[
+            Text('Itens', style: Theme.of(context).textTheme.titleMedium),
+            for (final i in s.items)
+              _line(
+                '${formatQuantity(i.quantity)} ${i.unit} × ${i.description}',
+                [
+                  '${formatMoney(i.unitPrice)} cada',
+                  if (i.discount > 0) 'desconto ${formatMoney(i.discount)}',
+                  formatMoney(i.total),
+                ].join(' · '),
               ),
-            )
-          else
-            _Header(sale: s, status: status),
-          const Divider(height: 32),
-          Text('Itens', style: Theme.of(context).textTheme.titleMedium),
-          for (final i in s.items)
+            if (s.discount > 0) _line('Desconto', formatMoney(s.discount)),
+            if (s.freight > 0) _line('Frete', formatMoney(s.freight)),
+            _line('Total', formatMoney(s.total)),
             _line(
-              '${formatQuantity(i.quantity)} ${i.unit} × ${i.description}',
-              [
-                '${formatMoney(i.unitPrice)} cada',
-                if (i.discount > 0) 'desconto ${formatMoney(i.discount)}',
-                formatMoney(i.total),
-              ].join(' · '),
+              'Custo e lucro',
+              'custo ${formatMoney(s.cost)} · lucro ${formatMoney(s.profit)}',
             ),
-          if (s.discount > 0) _line('Desconto', formatMoney(s.discount)),
-          if (s.freight > 0) _line('Frete', formatMoney(s.freight)),
-          _line('Total', formatMoney(s.total)),
-          _line(
-            'Custo e lucro',
-            'custo ${formatMoney(s.cost)} · lucro ${formatMoney(s.profit)}',
-          ),
-          if (s.payments.isNotEmpty) ...[
-            const Divider(height: 32),
-            Text('Pagamentos', style: Theme.of(context).textTheme.titleMedium),
-            for (final p in s.payments)
-              ListTile(
-                dense: true,
-                title: Text(
-                  '${payMethodLabels[p.method]} ${formatMoney(p.amount)}',
-                ),
-                subtitle: Text(
-                  [
-                    saleDay(p.at),
-                    p.receipt ? 'recebido' : 'na venda',
-                    if (p.voided) 'estornado',
-                  ].join(' · '),
-                ),
-                trailing: p.receipt && !p.voided && !s.canceled
-                    ? IconButton(
-                        tooltip: 'Desfazer recebimento',
-                        icon: const Icon(Symbols.undo_rounded),
-                        onPressed: () => _undo(p),
-                      )
-                    : null,
+          ];
+          final moneyBlock = <Widget>[
+            if (s.payments.isNotEmpty) ...[
+              wide ? const SizedBox(height: 24) : const Divider(height: 32),
+              Text(
+                'Pagamentos',
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-          ],
-          if (s.installments.isNotEmpty) ...[
-            const Divider(height: 32),
-            Text('Parcelas', style: Theme.of(context).textTheme.titleMedium),
-            for (final (i, inst) in s.installments.indexed)
-              if ((
-                    paid[i] >= inst.amount,
-                    inst.due.compareTo(isoDay(today)) < 0,
-                  )
-                  case (final done, final late))
-                _line(
-                  '${inst.number}ª · vence ${formatDay(inst.due)} · '
-                  '${formatMoney(inst.amount)}',
-                  [
-                    if (paid[i] > 0 && !done) 'pago ${formatMoney(paid[i])}',
-                    if (s.canceled)
-                      'cancelada'
-                    else if (done)
-                      'paga'
-                    else if (late)
-                      'vencida'
-                    else
-                      'em aberto',
-                  ].join(' · '),
-                  style: !s.canceled && !done && late ? error : null,
+              for (final p in s.payments)
+                ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    '${payMethodLabels[p.method]} ${formatMoney(p.amount)}',
+                  ),
+                  subtitle: Text(
+                    [
+                      saleDay(p.at),
+                      p.receipt ? 'recebido' : 'na venda',
+                      if (p.voided) 'estornado',
+                    ].join(' · '),
+                  ),
+                  trailing: p.receipt && !p.voided && !s.canceled
+                      ? IconButton(
+                          tooltip: 'Desfazer recebimento',
+                          icon: const Icon(Symbols.undo_rounded),
+                          onPressed: () => _undo(p),
+                        )
+                      : null,
                 ),
-          ],
-          if (s.note.isNotEmpty) ...[
-            const Divider(height: 32),
-            _line('Observação', s.note),
-          ],
-          const SizedBox(height: 16),
-          Wrap(
+            ],
+            if (s.installments.isNotEmpty) ...[
+              wide ? const SizedBox(height: 24) : const Divider(height: 32),
+              Text('Parcelas', style: Theme.of(context).textTheme.titleMedium),
+              for (final (i, inst) in s.installments.indexed)
+                if ((
+                      paid[i] >= inst.amount,
+                      inst.due.compareTo(isoDay(today)) < 0,
+                    )
+                    case (final done, final late))
+                  _line(
+                    '${inst.number}ª · vence ${formatDay(inst.due)} · '
+                    '${formatMoney(inst.amount)}',
+                    [
+                      if (paid[i] > 0 && !done) 'pago ${formatMoney(paid[i])}',
+                      if (s.canceled)
+                        'cancelada'
+                      else if (done)
+                        'paga'
+                      else if (late)
+                        'vencida'
+                      else
+                        'em aberto',
+                    ].join(' · '),
+                    style: !s.canceled && !done && late ? error : null,
+                  ),
+            ],
+            if (s.note.isNotEmpty) ...[
+              wide ? const SizedBox(height: 24) : const Divider(height: 32),
+              _line('Observação', s.note),
+            ],
+          ];
+          final actions = Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
@@ -302,8 +308,65 @@ class _SaleScreenState extends State<SaleScreen> {
                   child: const Text('Resumo pelo WhatsApp'),
                 ),
             ],
-          ),
-        ],
+          );
+          final padding = EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            16 + MediaQuery.paddingOf(context).bottom,
+          );
+          if (wide) {
+            return SingleChildScrollView(
+              padding: padding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ...top,
+                  const Divider(height: 32),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: itemsBlock,
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // The spacer that stood for the divider is not
+                            // needed on top of a column.
+                            if (moneyBlock.isNotEmpty &&
+                                moneyBlock.first is SizedBox)
+                              ...moneyBlock.skip(1)
+                            else
+                              ...moneyBlock,
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  actions,
+                ],
+              ),
+            );
+          }
+          return ListView(
+            padding: padding,
+            children: [
+              ...top,
+              const Divider(height: 32),
+              ...itemsBlock,
+              ...moneyBlock,
+              const SizedBox(height: 16),
+              actions,
+            ],
+          );
+        },
       ),
     );
   }
@@ -430,6 +493,7 @@ class _CancelDialogState extends State<_CancelDialog> {
       title: Text('Cancelar a venda nº ${widget.number}?'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
+        spacing: 16,
         children: [
           const Text(
             'O estoque volta e os recebimentos ficam estornados. A venda '

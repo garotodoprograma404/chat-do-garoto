@@ -982,8 +982,15 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
       open: _detailsOpen,
       onToggle: () => setState(() => _detailsOpen = !_detailsOpen),
       children: [
-        _field('discount', 'Desconto no total', _discount, hint: 'R\$ ou %'),
-        _field('freight', 'Frete', _freight, money: true),
+        FormPair(
+          first: _field(
+            'discount',
+            'Desconto no total',
+            _discount,
+            hint: 'R\$ ou %',
+          ),
+          second: _field('freight', 'Frete', _freight, money: true),
+        ),
         _field('date', 'Data da venda', _date, date: true),
         _field('note', 'Observação', _note),
       ],

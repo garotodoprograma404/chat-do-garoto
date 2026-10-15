@@ -6,6 +6,7 @@ import '../clients/validation.dart';
 import '../products/money.dart';
 import '../products/products_repository.dart';
 import '../search/text.dart';
+import '../theme/components.dart';
 
 /// Picks an active product and variation for a sale. Pops
 /// with the pair.
@@ -106,8 +107,14 @@ class _ItemPickerScreenState extends State<ItemPickerScreen> {
               itemBuilder: (context, i) {
                 final p = shown[i];
                 final prices = p.pricesToday(today);
-                return ListTile(
-                  title: Text(p.name),
+                // The same row as the lists of Produtos and Clientes.
+                return AppListTile(
+                  leading: InitialsAvatar(p.name),
+                  title: Text(
+                    p.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   subtitle: Text(
                     [
                       prices.length > 1
@@ -173,8 +180,13 @@ class _ClientPickerScreenState extends State<ClientPickerScreen> {
           Expanded(
             child: ListView.builder(
               itemCount: shown.length,
-              itemBuilder: (context, i) => ListTile(
-                title: Text(shown[i].name),
+              itemBuilder: (context, i) => AppListTile(
+                leading: InitialsAvatar(shown[i].name),
+                title: Text(
+                  shown[i].name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 subtitle: Text(formatPhone(shown[i].phone)),
                 onTap: () => Navigator.pop(context, shown[i]),
               ),

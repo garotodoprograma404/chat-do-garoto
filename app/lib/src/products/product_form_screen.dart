@@ -1224,12 +1224,18 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 ],
               ),
               _group('promo', 'Promoção', Symbols.sell_rounded, _promoSummary, [
-                _moneyField('promoPrice', 'Preço promocional', _promoPrice),
-                _date(
-                  'promoUntil',
-                  'Promoção até',
-                  _promoUntil,
-                  'dd/mm/aaaa (em branco: sem data)',
+                FormPair(
+                  first: _moneyField(
+                    'promoPrice',
+                    'Preço promocional',
+                    _promoPrice,
+                  ),
+                  second: _date(
+                    'promoUntil',
+                    'Promoção até',
+                    _promoUntil,
+                    'dd/mm/aaaa (opcional)',
+                  ),
                 ),
               ]),
               _group(
@@ -1292,19 +1298,21 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       ],
                       onChanged: (u) => setState(() => _unit = u!),
                     ),
-                    _field(
-                      'minStock',
-                      'Estoque mínimo ($_unit)',
-                      _minStock,
-                      keyboard: _decimal,
-                      hint: 'avisa quando chegar nele',
-                    ),
-                    // The current batch's.
-                    _date(
-                      'expiresOn',
-                      'Validade',
-                      _expiresOn,
-                      'dd/mm/aaaa (em branco: não se aplica)',
+                    FormPair(
+                      first: _field(
+                        'minStock',
+                        'Estoque mínimo ($_unit)',
+                        _minStock,
+                        keyboard: _decimal,
+                        hint: 'avisa ao chegar',
+                      ),
+                      // The current batch's.
+                      second: _date(
+                        'expiresOn',
+                        'Validade',
+                        _expiresOn,
+                        'dd/mm/aaaa (opcional)',
+                      ),
                     ),
                   ],
                 ),
@@ -1322,8 +1330,15 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 Symbols.folder_rounded,
                 _organizationSummary,
                 [
-                  _suggested('category', 'Categoria', _category, _categories),
-                  _suggested('brand', 'Marca', _brand, _brands),
+                  FormPair(
+                    first: _suggested(
+                      'category',
+                      'Categoria',
+                      _category,
+                      _categories,
+                    ),
+                    second: _suggested('brand', 'Marca', _brand, _brands),
+                  ),
                   _suggested('supplier', 'Fornecedor', _supplier, _suppliers),
                   _field('description', 'Descrição', _description, maxLines: 3),
                 ],

@@ -153,6 +153,8 @@ class _ReceiveDialogState extends State<_ReceiveDialog> {
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          // 16 between the fields of a dialog.
+          spacing: 16,
           children: [
             Text('Falta ${formatMoney(widget.open)}'),
             TextField(

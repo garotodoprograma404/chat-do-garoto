@@ -467,19 +467,54 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
         ],
       ),
-      body: ListView(
-        // Content drawn behind the system navigation bar must scroll above
-        // it (edge to edge on Android).
-        padding: EdgeInsets.only(
-          bottom: 16 + MediaQuery.paddingOf(context).bottom,
-        ),
-        children: [
-          _header(p, today),
-          _actions(p),
-          const Divider(height: 32),
-          if (!p.isService) ..._stock(p, today),
-          ..._details(p, today),
-        ],
+      body: LayoutBuilder(
+        builder: (context, box) {
+          // Content drawn behind the system navigation bar must scroll
+          // above it (edge to edge on Android).
+          final bottom = 16 + MediaQuery.paddingOf(context).bottom;
+          // A wide pane: stock beside the details.
+          if (box.maxWidth >= 760 && !p.isService) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: bottom),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _header(p, today),
+                  _actions(p),
+                  const Divider(height: 32),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: _stock(p, today),
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: _details(p, today),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+          return ListView(
+            padding: EdgeInsets.only(bottom: bottom),
+            children: [
+              _header(p, today),
+              _actions(p),
+              const Divider(height: 32),
+              if (!p.isService) ..._stock(p, today),
+              ..._details(p, today),
+            ],
+          );
+        },
       ),
     );
   }

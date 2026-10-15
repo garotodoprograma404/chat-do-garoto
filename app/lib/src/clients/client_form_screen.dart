@@ -298,7 +298,13 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               )
-            : TextButton(onPressed: _findCep, child: const Text('Buscar CEP')),
+            : Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: TextButton(
+                  onPressed: _findCep,
+                  child: const Text('Buscar CEP'),
+                ),
+              ),
       ),
     ),
     _field('address', 'Rua', _address),
@@ -430,27 +436,31 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                     keyboard: TextInputType.emailAddress,
                   ),
                   ..._addressFields(),
-                  _field(
-                    'document',
-                    'CPF ou CNPJ',
-                    _document,
-                    keyboard: TextInputType.number,
-                    mask: Masks.document,
+                  FormPair(
+                    first: _field(
+                      'document',
+                      'CPF ou CNPJ',
+                      _document,
+                      keyboard: TextInputType.number,
+                      mask: Masks.document,
+                    ),
+                    second: _field(
+                      'birthday',
+                      'Aniversário',
+                      _birthday,
+                      keyboard: TextInputType.number,
+                      hint: 'dd/mm ou dd/mm/aaaa',
+                      mask: Masks.date,
+                    ),
                   ),
-                  _field(
-                    'birthday',
-                    'Aniversário',
-                    _birthday,
-                    keyboard: TextInputType.number,
-                    hint: 'dd/mm ou dd/mm/aaaa',
-                    mask: Masks.date,
-                  ),
-                  _field('company', 'Empresa', _company),
-                  _field(
-                    'tags',
-                    'Etiquetas',
-                    _tags,
-                    hint: 'separadas por vírgula',
+                  FormPair(
+                    first: _field('company', 'Empresa', _company),
+                    second: _field(
+                      'tags',
+                      'Etiquetas',
+                      _tags,
+                      hint: 'separadas por vírgula',
+                    ),
                   ),
                 ],
               ),

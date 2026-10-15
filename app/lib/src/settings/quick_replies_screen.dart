@@ -177,6 +177,8 @@ class _ReplyDialogState extends State<_ReplyDialog> {
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          // 16 between the fields of a dialog.
+          spacing: 16,
           children: [
             TextField(
               controller: _shortcut,
@@ -188,7 +190,6 @@ class _ReplyDialogState extends State<_ReplyDialog> {
                 errorText: _shortcutError,
               ),
             ),
-            const SizedBox(height: 12),
             TextField(
               controller: _text,
               minLines: 3,

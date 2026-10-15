@@ -217,6 +217,8 @@ class _ExportDialogState extends State<_ExportDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
+          // 16 between the fields of a dialog.
+          spacing: 16,
           children: [
             TextField(
               controller: _password,
@@ -231,7 +233,6 @@ class _ExportDialogState extends State<_ExportDialog> {
                 errorText: _error,
               ),
             ),
-            const SizedBox(height: 8),
             const Text(
               'Sem esta senha ninguém abre o backup, nem nós. Guarde-a num '
               'lugar seguro.',
@@ -282,6 +283,7 @@ class _RestoreDialogState extends State<_RestoreDialog> {
       title: const Text('Restaurar backup'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
+        spacing: 16,
         children: [
           const Text(
             'Restaurar substitui todos os dados do app neste aparelho '
