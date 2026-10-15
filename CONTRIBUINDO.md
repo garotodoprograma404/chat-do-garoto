@@ -1,35 +1,29 @@
-# Contribuindo — Chat do Garoto
+# Contribuindo
 
-App que junta, no mesmo lugar, conversas do WhatsApp, clientes, produtos e vendas, com privacidade total: tudo roda e fica cifrado no aparelho, sem servidor. Android e Linux primeiro.
+Obrigado pelo interesse em contribuir com o Chat do Garoto. Este guia reúne o que é preciso para preparar o ambiente, seguir o fluxo de trabalho e entregar uma mudança que passe na revisão.
 
-- Regras de cada parte do código: `core/DESENVOLVIMENTO.md` (Go) e `app/DESENVOLVIMENTO.md` (Flutter)
+## Antes de começar
 
-## Como trabalhar
+- [`README.md`](README.md): visão geral do projeto.
+- [`app/DESENVOLVIMENTO.md`](app/DESENVOLVIMENTO.md) (Flutter) e [`core/DESENVOLVIMENTO.md`](core/DESENVOLVIMENTO.md) (Go): mapa do código e armadilhas conhecidas.
 
-- Teste antes de dar por pronto. Nunca apague nem afrouxe teste para "passar".
-- Documentos e commits em português do Brasil; código, identificadores e comentários no código em inglês.
-- Commits no estilo Conventional Commits, com a descrição em português (`feat(app): ...`, `fix(core): ...`, `docs: ...`).
-
-## Stack
+## Ambiente
 
 | Peça | Versão | Onde |
 | --- | --- | --- |
 | Flutter / Dart | 3.47.5 / 3.13.4 | `app/` |
-| Go + whatsmeow | 1.27.1 + última do repositório | `core/` (biblioteca `c-shared`) |
+| Go + whatsmeow | 1.27.1 | `core/` (biblioteca `c-shared`) |
 | Ponte | `dart:ffi` + bindings gerados por `ffigen` | `core/` exporta, `app/` consome |
 | Banco local | SQLite + SQLCipher (Drift no Flutter) | `app.db` (Dart) e `wa.db` (Go) |
 | Android | SDK 36, NDK r30 (30.0.16248370) | `~/Android/Sdk` |
 
-## Comandos
+No Linux, instale também `clang`, `cmake`, `ninja-build`, `pkg-config`, `libgtk-3-dev`, `libsecret-1-dev` e `liblzma-dev`.
 
 ```bash
-# Flutter (dentro de app/) — flutter run/build/test também compila o Go (hook)
+# Flutter (dentro de app/): flutter run, build e test também compilam o Go (build hook)
 flutter pub get
-dart format .
-flutter analyze
-flutter test
-flutter run -d linux          # desktop
-flutter run -d <celular>      # instala e abre no celular
+flutter run -d linux          # computador
+flutter run -d <aparelho>     # Android
 
 # Go (dentro de core/)
 gofmt -l .
@@ -37,10 +31,50 @@ go vet ./...
 go test ./...
 ```
 
-## Segurança e privacidade (inegociável)
+## Fluxo de trabalho
 
-- Nunca registrar em log, `print`, mensagem de erro ou crash report: conteúdo de mensagens, números de telefone, nomes de contatos, chaves, PIN ou senhas.
-- Nenhuma dependência de analytics, telemetria, crash reporting, anúncios ou nuvem.
-- Criptografia só com bibliotecas reconhecidas (SQLCipher, libsodium, Argon2id, protocolo Signal). Nunca inventar esquema próprio.
-- Nunca commitar bancos (`*.db`), sessões do WhatsApp, chaves, backups, `.env` ou keystores.
-- **Nunca enviar mensagem a contatos reais em teste.** Use um número de teste seu. Nada de envio em massa (risco de banimento do número).
+1. Abra uma issue descrevendo o problema ou a proposta, ou comente numa existente.
+2. Crie uma branch a partir de `main`.
+3. Faça mudanças pequenas e focadas, com testes.
+4. Abra o pull request preenchendo o modelo.
+
+### Commits
+
+[Conventional Commits](https://www.conventionalcommits.org/pt-br/), com a descrição em português:
+
+```
+feat(app): filtro de conversas sem resposta
+fix(core): não segurar a trava da sessão ao desconectar
+docs: atualiza o guia de contribuição
+```
+
+## Qualidade
+
+Antes de abrir o pull request:
+
+```bash
+cd core && gofmt -l . && go vet ./... && go test ./...
+cd ../app && dart format . && flutter analyze && flutter test
+```
+
+- Todo comportamento novo tem teste. Nunca remova nem afrouxe um teste para fazê-lo passar.
+- `flutter analyze` e `go vet` sem avisos.
+- Código, identificadores e comentários no código em inglês. Documentação e mensagens de commit em português do Brasil.
+- Uma tela nova segue os componentes e o espaçamento do tema (`app/lib/src/theme/`) e é conferida em celular, tablet e computador (`app/integration_test/layout_audit_test.dart` gera as imagens).
+
+## Segurança e privacidade
+
+Regras que nenhuma mudança pode quebrar:
+
+- Nunca registrar em log, `print`, mensagem de erro ou relatório de falha: conteúdo de mensagens, números de telefone, nomes de contatos, chaves, PIN ou senhas.
+- Nenhuma dependência de analytics, telemetria, relatório de falhas, anúncios ou nuvem.
+- A única conexão de rede do aplicativo é com o WhatsApp, via whatsmeow. Qualquer outra exige discussão prévia numa issue.
+- Criptografia apenas com bibliotecas reconhecidas (SQLCipher, age, Argon2id, protocolo Signal). Nenhum esquema próprio.
+- Nunca versionar bancos (`*.db`), sessões do WhatsApp, chaves, backups, `.env` ou keystores.
+- Em testes, nunca enviar mensagens a contatos reais: use um número de teste. Nenhum envio em massa (risco de banimento do número).
+
+Vulnerabilidades devem ser relatadas de forma privada, conforme [`SECURITY.md`](SECURITY.md).
+
+## Licença
+
+Ao contribuir, você concorda que sua contribuição seja licenciada sob a [GPL-3.0](LICENSE), a mesma do projeto.
