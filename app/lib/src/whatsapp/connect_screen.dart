@@ -16,7 +16,6 @@ class ConnectScreen extends StatelessWidget {
   const ConnectScreen({
     super.key,
     required this.controller,
-    this.onOpenPrototype,
     this.onOpenSettings,
   });
 
@@ -24,9 +23,6 @@ class ConnectScreen extends StatelessWidget {
 
   /// Shows the ⋮ menu when this screen is the Conversas section.
   final VoidCallback? onOpenSettings;
-
-  /// Opens the phase 1 test screen; hidden when null.
-  final VoidCallback? onOpenPrototype;
 
   @override
   Widget build(BuildContext context) {
@@ -66,13 +62,6 @@ class ConnectScreen extends StatelessWidget {
                 ),
                 _ => const _Progress('Conectando ao WhatsApp…'),
               },
-              if (onOpenPrototype != null) ...[
-                const Divider(height: 48),
-                TextButton(
-                  onPressed: onOpenPrototype,
-                  child: const Text('Tela de teste (protótipo)'),
-                ),
-              ],
             ],
           ),
         ),

@@ -35,7 +35,6 @@ class HomeShell extends StatefulWidget {
     this.sales,
     this.photos,
     required this.onOpenSettings,
-    this.onOpenPrototype,
     this.backup,
     this.onOpenBackup,
     this.settingsBuilder,
@@ -58,7 +57,6 @@ class HomeShell extends StatefulWidget {
   /// The gallery and the camera for product photos.
   final PhotoPicker? photos;
   final VoidCallback onOpenSettings;
-  final VoidCallback? onOpenPrototype;
 
   /// The backup reminder at the top and what it opens.
   final BackupController? backup;
@@ -162,11 +160,7 @@ class _HomeShellState extends State<HomeShell> {
   Widget _conversations() {
     final whatsapp = widget.whatsapp;
     if (!whatsapp.linked) {
-      return ConnectScreen(
-        controller: whatsapp,
-        onOpenPrototype: widget.onOpenPrototype,
-        onOpenSettings: _openSettings,
-      );
+      return ConnectScreen(controller: whatsapp, onOpenSettings: _openSettings);
     }
     return ChatsScreen(
       bridge: widget.bridge,

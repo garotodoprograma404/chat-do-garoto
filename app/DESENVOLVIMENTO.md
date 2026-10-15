@@ -87,7 +87,6 @@ Regra da pesquisa: cadastro curto, só o essencial no alto e o resto em grupos. 
 | `lib/src/home/start_screen.dart` + `start_controller.dart` | Início: bloco "Hoje" (parcelas vencidas e de hoje, aniversários em 7 dias, conversas sem resposta, estoque baixo), atalhos e números do mês, calculados na memória dos repositórios. O app abre nele, e por isso **mostra nomes e prévias de conversas**: nos testes no celular, não capturar a tela do Início. "Ver todas" abre Conversas com o filtro. |
 | `lib/src/lock/` + `android/.../BiometricKey.kt` | Bloqueio do app: `LockController` (PIN de 6 dígitos, digital, espera após erros, bloqueio após 1 min fora ou 5 min parado, trocar e esqueci o PIN) e as telas. A chave do `app.db` só sai com o PIN (envelope no Go) ou a digital (Keystore + `BiometricPrompt`, canal `chatdogaroto/security`). |
 | `test/support/` | Ponte, serviço, cofre, biometria e chave falsos para os testes de tela e de controlador. |
-| `lib/src/prototype/` | Tela de teste da Fase 1. Sai quando existirem as telas do WhatsApp. |
 
 - Organização: uma pasta por funcionalidade em `lib/src/<funcionalidade>/`, com controlador `ChangeNotifier` (estado e ações) e telas que só leem o controlador (`ListenableBuilder`). Sem pacote externo de estado.
 - As telas recebem um `CoreBridge` e nunca chamam FFI diretamente.

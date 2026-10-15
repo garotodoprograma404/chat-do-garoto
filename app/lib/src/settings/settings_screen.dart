@@ -24,7 +24,6 @@ class SettingsScreen extends StatelessWidget implements WideScreen {
     super.key,
     required this.whatsapp,
     required this.lock,
-    this.onOpenPrototype,
     this.onOpenBackup,
     this.theme,
   });
@@ -34,9 +33,6 @@ class SettingsScreen extends StatelessWidget implements WideScreen {
 
   final WhatsAppController whatsapp;
   final LockController lock;
-
-  /// Opens the phase 1 test screen; hidden when null.
-  final VoidCallback? onOpenPrototype;
 
   /// Opens Backup; hidden when null.
   final VoidCallback? onOpenBackup;
@@ -83,13 +79,7 @@ class SettingsScreen extends StatelessWidget implements WideScreen {
               title: 'Conexão com o WhatsApp',
               subtitle: 'Ligar, desligar ou refazer o pareamento',
               trailing: connection,
-              onTap: () => _push(
-                context,
-                ConnectScreen(
-                  controller: whatsapp,
-                  onOpenPrototype: onOpenPrototype,
-                ),
-              ),
+              onTap: () => _push(context, ConnectScreen(controller: whatsapp)),
             ),
             row(
               icon: Symbols.monitor_heart_rounded,
@@ -256,10 +246,7 @@ class SettingsScreen extends StatelessWidget implements WideScreen {
           WhatsAppPhase.pairing => 'Desconectado',
           _ => 'Conectando…',
         }),
-        onTap: () => _push(
-          context,
-          ConnectScreen(controller: whatsapp, onOpenPrototype: onOpenPrototype),
-        ),
+        onTap: () => _push(context, ConnectScreen(controller: whatsapp)),
       ),
       ListTile(
         leading: const Icon(Symbols.monitor_heart_rounded),

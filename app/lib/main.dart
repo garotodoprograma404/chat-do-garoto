@@ -39,7 +39,6 @@ import 'src/storage/storage_controller.dart';
 import 'src/theme/app_theme.dart';
 import 'src/theme/responsive.dart';
 import 'src/theme/theme_controller.dart';
-import 'src/prototype/prototype_screen.dart';
 import 'src/settings/settings_screen.dart';
 import 'src/whatsapp/whatsapp_controller.dart';
 
@@ -420,7 +419,6 @@ class _ChatDoGarotoAppState extends State<ChatDoGarotoApp> {
           BackupScreen(controller: widget.backup, mediaBytes: _mediaBytes),
         ),
         theme: widget.theme,
-        onOpenPrototype: () => open(PrototypeScreen(bridge: widget.bridge)),
       ),
       onOpenSettings: () => _open(
         context,
@@ -429,12 +427,8 @@ class _ChatDoGarotoAppState extends State<ChatDoGarotoApp> {
           lock: lock,
           onOpenBackup: () => _openBackup(context),
           theme: widget.theme,
-          onOpenPrototype: () =>
-              _open(context, PrototypeScreen(bridge: widget.bridge)),
         ),
       ),
-      onOpenPrototype: () =>
-          _open(context, PrototypeScreen(bridge: widget.bridge)),
     );
   }
 
